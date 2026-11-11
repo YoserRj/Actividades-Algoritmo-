@@ -1,0 +1,34 @@
+<!-- es DOCTYPE html: declara un documento de html-->
+<!DOCTYPE html>
+<!-- HTML LANG esto indica que el lenguaje del documento es español -->
+<html lang="es"> 
+<!-- el documento, como el título y la configuración de caracteres. -->
+<head>
+    <!-- esto indica que el documento debe moestras el caracteres especiales, como acentos y eñes. -->
+    <meta charset="UTF-8">
+    <!-- esto permite adaptar la escalal en las paginas,en movil y tabletas. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- aqui se aplica el tirulo de la pagina. -->
+    <title>Suma y Resta de Cuatro Valores</title>
+    <!-- este es el link paera aplicar el estilo de la pagina. es la formaado, donde se estrura en un archivo css. -->
+    <link rel="stylesheet" href="estilos.css"
+</head>
+<body>
+    <!-- este es el encabzado o titulo de h1 a h6 entre 1 el mas importante y 6 el menos importante. -->
+    <h1>Ejercicio 3: Suma y Resta de Cuatro Valores</h1>
+    <!-- p define un parrafo, y class es una clase que se puede aplicar a varios elementos. -->
+    <p class="enunciado"> Escribe los 4 valores: se suma y a la suma se le resta el ultimo.</p>
+
+    <!-- input es una entrad para que el usuario, 
+    type es definir que tipo de dato se va a ingresar -->
+    <input type="number" id="primerValor" plachooldes="Primer valor">
+    <input type="number" id="segundoValor" plachooldes="Segundo valor">
+    <input type="number" id="tercerValor" plachooldes="Tercer valor">
+    <input type="number" id="cuartoValor" plachooldes="Cuarto valor(se resta)">
+
+    <!-- aqui el javaScript escribe los resultados, se llama el el archivo js, y se le da un id para poder llamarlo en el archivo js. -->
+    <div class="caja" id="resultado">Escribe los 4 valores</div>
+    
+    script src="03-suma-resta-cuatro-valores.js"></script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+/* el CSS es un lenguaje de marcado de presentación que se utiliza para describir la apariencia y el formato de un documento escrito en HTML o XML. Se utiliza para definir estilos, como colores, fuentes, tamaños y disposiciÓ. */
+*{margin: 0; padding: 0; box-sizing: border-box;}
+
+
+/* en el cuerpo del la pagina se define la fuente y la alineación del texto */
+body{
+    font-family: Arial, Helvetica, sans-serif;
+    padding: 30px 16px;
+    text-align: center;
+}
+
+h1{
+    color: teal;
+    font-size: 22px;
+    margin-bottom: 8px;
+}   
+
+.enunciadp{
+    color: #555;
+    margin-bottom: 20px;
+}
+
+/* el input: sin border, solo una linea abajo en teal */
+input{
+    margin: 5px;
+    padding: 6px 9px;
+    border: none;
+    border-bottom: 2px solid teal;
+    color: teal;
+    border-radius: 3px;
+}
+
+.caja {
+    background-color: rgb(5, 181, 181);
+    color: white;
+    width: 260%;
+    margin: 20px auto 0;
+    padding: 10px;
+    text-align: center;
+    border: 3px solid rgb(6, 170, 256);
+    border-radius: 5px;
+    line-height: 1.6;
+}
