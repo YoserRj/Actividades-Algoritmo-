@@ -3,17 +3,39 @@
 // leer 4 valores y sumarlos, luego restar el ultimo valor.
 //====================================
 
-const inputPtimer = document.getElementById("primerValor");
+//Buscamos en el HTML los 4 inputs y la caja del resultdo (por su id)
+const inputPrimer = document.getElementById("primerValor");
 const inputSegundo = document.getElementById("segundoValor");
 const inputTercer = document.getElementById("tercerValor");
 const inputCuarto = document.getElementById("cuartoValor");
 const cajaResultado = document.getElementById("resultado");
 
 function calcular () {
-    const primerValor.value === "" || segundoValor.value === "" || tercerValor.value === "" || cuartoValor.value === "" ? alert("Por favor ingrese todos los valores") : cajaResultado.innerHTML = parseInt(primerValor.value) + parseInt(segundoValor.value) + parseInt(tercerValor.value) - parseInt(cuartoValor.value);
-    cajaResultado.style.display = "Escribe los 4 valores";
+  // si falta algun valor no se calcula.
+  if (inputPrimer.value === "" || inputSegundo.value === "" || inputTercer.value === "" || inputCuarto.value === "") {
+    cajaResultado.textContent = "Escribe los 4 valores";
     return;
   }
 
-  //
-  const sumav
+  //lo que se escribe  en inpunt es texto: Number() o parseInt() para convertirlo a numero.
+  const primerValor = Number(inputPrimer.value);
+  const segundoValor = Number(inputSegundo.value);
+  const tercerValor = Number(inputTercer.value);
+  const cuartoValor = Number(inputCuarto.value);
+
+  //sumar los 4 valores.
+  const sumaValores = primerValor + segundoValor + tercerValor + cuartoValor;
+
+  // a la suma total se le resta el cuarto valor.
+  const resultadoResta = sumaValores - cuartoValor;
+
+  // mostrar el resultado en la pagina.
+  cajaResultado.innerHTML = "suma de los 4 valores: <b>" + sumaValores + "</b><br>" +
+  "suma menos el cuarto valor: <b>" + resultadoResta + "</b>";
+
+}
+// cada vez que se escribe en cualquier input se ejecuta la funcion calcular.
+  inputPrimer.addEventListener("input", calcular);
+  inputSegundo.addEventListener("input", calcular);
+  inputTercer.addEventListener("input", calcular);
+  inputCuarto.addEventListener("input", calcular);
