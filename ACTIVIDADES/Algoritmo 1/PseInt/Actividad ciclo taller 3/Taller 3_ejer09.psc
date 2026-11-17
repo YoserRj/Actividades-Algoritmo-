@@ -19,7 +19,7 @@ Algoritmo ejer09compl
 		si i % 2 <> 0 Entonces
 			S = S + i
 			
-		si i > 1 Entonces
+			si i > 1 Entonces
 				Escribir Sin Saltar " + "
 			FinSi
 			Escribir Sin Saltar i
@@ -35,8 +35,8 @@ Algoritmo ejer09compl
 	Escribir "Ciclo Repetir"
 	
 	//Definir el iterador
-	Definir u Como Entero
-    
+	Definir u, x Como Entero
+    x = 0
     Escribir "INGRESE EL VALOR N"
     Leer N
     
@@ -52,26 +52,25 @@ Algoritmo ejer09compl
     u = 1
     Repetir
         Si u % 2 <> 0 Entonces
-            S = S + u
+            x = x + u
             Si u > 1 Entonces
                 Escribir Sin Saltar " + "
             FinSi
             Escribir Sin Saltar u
         Sino
-            S = S - u
+            x = x - u
             Escribir Sin Saltar " - ", u
         FinSi
         u = u + 1 // Incremento del contador
     Hasta Que u > N
-    Escribir " = ", S
+    Escribir " = ", x
 	
 	Escribir " "
 	Escribir "__________________________________"
 	Escribir "Ciclo Mientras"
 	
-	// Definir el iterador
-	Definir e Como Entero
-    S = 0
+	Definir t, I Como Entero
+    t = 0
     
     Escribir "INGRESE EL VALOR N"
     Leer N
@@ -81,24 +80,24 @@ Algoritmo ejer09compl
         Escribir "el valor ingresado es incorrecto"
         Leer N
     FinMientras
-	
-    //bloque de Imprimir 
+    
     Escribir Sin Saltar "S = "
+    
     // Ciclo Mientras reemplazando al Para
-    e = 1
-    Mientras e <= N Hacer
+    I = 1
+    Mientras I <= N Hacer
         Si i % 2 <> 0 Entonces
-            S = S + e
-            Si e > 1 Entonces
+            t = t + I
+            Si I > 1 Entonces
                 Escribir Sin Saltar " + "
             FinSi
-            Escribir Sin Saltar e
+            Escribir Sin Saltar I
         Sino
-            S = S - e
-            Escribir Sin Saltar " - ", e
+            t = t - I
+            Escribir Sin Saltar " - ", I
         FinSi
-        e = e + 1 // Incremento del contador
+        I = I + 1 // Incremento del contador
     FinMientras
-    Escribir " = ", S
-	
+    
+    Escribir " = ", t
 FinAlgoritmo
