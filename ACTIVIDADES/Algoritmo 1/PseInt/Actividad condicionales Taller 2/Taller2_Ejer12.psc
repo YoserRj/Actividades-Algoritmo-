@@ -12,17 +12,17 @@ Algoritmo MostrarYx
 		Escribir "Y = 3.15 * X + 5.25"
 		yen = 3.15 * x + 5.25
 	SiNo
-		si x = -4 y x < 35 Entonces
+		si x >= -4 y x < 4 Entonces
 			Escribir "X^2 - 16"
 			yen = x^2 - 16
 		SiNo
-			si x = -4 y -x >= -4 y x < 35 Entonces
+			si x >= 4 y x < 35 Entonces
 				Escribir "4.12x - 5"
 				yen = 4.12 * x - 5
 			SiNo
 				si x >= 35 Entonces
-					Escribir "x^5-7X"
-					yen = 4.12 * x - 5
+					Escribir "x^5 - 7 * X"
+					yen = x^5 - 7 * x
 				SiNo
 					Escribir "No es correspondido"
 				FinSi
