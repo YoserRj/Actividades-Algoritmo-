@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Skills Assessment – Simulador de Competencias CRM</title>
+<style>
+  :root {
+    --primary: #1e3a8a; --primary-light: #eff6ff; --electric: #2563eb; --electric-hover: #1d4ed8;
+    --accent: #0d9488; --accent-light: #f0fdfa; --danger: #dc2626; --danger-light: #fef2f2;
+    --warn: #d97706; --warn-light: #fffbeb; --ok: #059669; --ok-light: #ecfdf5;
+    --text: #1e293b; --muted: #64748b; --border: #e2e8f0; --surface: #f8fafc; --radius: 12px;
+    --shadow: 0 10px 25px -5px rgba(15,23,42,.25), 0 8px 10px -6px rgba(15,23,42,.2);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  body { background: linear-gradient(135deg,#0f172a 0%,#1e293b 100%); color: var(--text); min-height: 100vh; padding: 16px; }
+  #app { width: 100%; max-width: 1050px; margin: 0 auto; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; min-height: 650px; display: flex; flex-direction: column; }
+  header { background: var(--primary); color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; border-bottom: 3px solid var(--electric); }
+  .header-brand h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: .5px; }
+  .header-brand p { font-size: .75rem; color: #93c5fd; margin-top: 2px; }
+  .hud { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .hud-badge { background: rgba(255,255,255,.15); padding: 6px 12px; border-radius: 20px; font-size: .75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+  .hud-badge.score { background: var(--electric); }
+  .hud-badge.light { background: var(--primary-light); color: var(--primary); }
+  .admin-link { background: transparent; border: 1px solid rgba(255,255,255,.4); color: #fff; padding: 6px 12px; border-radius: 20px; font-size: .75rem; cursor: pointer; }
+  .admin-link:hover { background: rgba(255,255,255,.15); }
+  .screen { display: none; flex: 1; padding: 24px; flex-direction: column; gap: 14px; }
+  .screen.active { display: flex; }
+  h2 { font-size: 1.25rem; color: var(--primary); margin-bottom: 4px; }
+  h3 { font-size: 1rem; color: var(--primary); margin-bottom: 6px; }
+  p { font-size: .9rem; line-height: 1.5; }
+  .muted { color: var(--muted); }
+  .small { font-size: .8rem; }
+  .card-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card-box.highlight { background: var(--primary-light); border-color: #bfdbfe; }
+  .card-box.context { background: var(--warn-light); border-color: #fde68a; }
+  .box-title { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; color: var(--primary); }
+  .form-group { display: flex; flex-direction: column; gap: 8px; max-width: 450px; margin: 16px auto; width: 100%; }
+  label { font-size: .85rem; font-weight: 600; }
+  input[type="text"], input[type="password"], input[type="number"], select, textarea {
+    padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: .92rem; outline: none; background: #fff; width: 100%; color: var(--text);
+  }
+  textarea { resize: vertical; line-height: 1.4; }
+  input:focus, select:focus, textarea:focus { border-color: var(--electric); box-shadow: 0 0 0 3px rgba(37,99,235,.15); }
+  .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: .88rem; font-weight: 600; cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary { background: var(--electric); color: #fff; } .btn-primary:hover { background: var(--electric-hover); }
+  .btn-accent { background: var(--accent); color: #fff; } .btn-accent:hover { opacity: .9; }
+  .btn-danger { background: var(--danger); color: #fff; } .btn-danger:hover { opacity: .9; }
+  .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); } .btn-outline:hover { background: var(--surface); }
+  .btn-sm { padding: 5px 10px; font-size: .75rem; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .progress-container { width: 100%; background: var(--border); border-radius: 8px; height: 8px; overflow: hidden; }
+  .progress-bar { background: var(--electric); height: 100%; width: 0; transition: width .4s ease; }
+  .options-list { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn { text-align: left; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 8px; background: #fff; font-size: .88rem; cursor: pointer; transition: all .15s; display: flex; align-items: flex-start; gap: 12px; color: var(--text); line-height: 1.4; }
+  .option-btn:hover:not(:disabled) { border-color: var(--electric); background: var(--primary-light); }
+  .option-btn.selected { border-color: var(--electric); background: var(--primary-light); font-weight: 600; }
+  .option-btn.correct { border-color: var(--ok); background: var(--ok-light); color: #065f46; font-weight: 600; }
+  .option-btn.wrong { border-color: var(--danger); background: var(--danger-light); color: #991b1b; }
+  .option-btn:disabled { cursor: default; }
+  .letter { font-weight: 800; color: var(--primary); }
+  .feedback-box { padding: 14px 16px; border-radius: 8px; font-size: .85rem; line-height: 1.45; display: none; }
+  .feedback-box.show { display: block; }
+  .feedback-box.ok { background: var(--accent-light); border: 1px solid #5eead4; color: var(--primary); }
+  .feedback-box.err { background: var(--danger-light); border: 1px solid #fca5a5; color: #7f1d1d; }
+  .footer-nav { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 14px; border-top: 1px solid var(--border); margin-top: auto; }
+  .results-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; }
+  .metric-card { background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%); color: #fff; padding: 20px; border-radius: 12px; text-align: center; }
+  .metric-value { font-size: 2.6rem; font-weight: 800; margin: 6px 0; color: #93c5fd; }
+  .tri { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .tri .card-box { text-align: center; }
+  .tri .big { font-size: 1.15rem; font-weight: 800; color: var(--primary); margin: 4px 0; }
+  .bar-row { display: grid; grid-template-columns: 190px 1fr 56px; gap: 10px; align-items: center; margin: 8px 0; font-size: .82rem; }
+  .bar-track { background: var(--border); border-radius: 6px; height: 14px; overflow: hidden; }
+  .bar-fill { background: var(--electric); height: 100%; border-radius: 6px; transition: width .6s ease; }
+  .badge { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: .7rem; font-weight: 700; }
+  .badge.b { background: #dcfce7; color: #166534; } .badge.i { background: #fef3c7; color: #92400e; } .badge.a { background: #fee2e2; color: #991b1b; }
+  .badge.on { background: #dcfce7; color: #166534; } .badge.off { background: #e2e8f0; color: #475569; }
+  .tabs { display: flex; gap: 6px; border-bottom: 2px solid var(--border); flex-wrap: wrap; }
+  .tab { padding: 9px 16px; border: none; background: none; font-weight: 600; font-size: .86rem; color: var(--muted); cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .tab.active { color: var(--electric); border-bottom-color: var(--electric); }
+  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .toolbar input[type="text"], .toolbar select { width: auto; min-width: 150px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  th { background: var(--surface); font-size: .72rem; text-transform: uppercase; letter-spacing: .4px; color: var(--primary); white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  td select { width: auto; padding: 4px 8px; font-size: .78rem; }
+  .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .stat { background: var(--primary-light); border: 1px solid #bfdbfe; border-radius: 10px; padding: 12px; text-align: center; }
+  .stat b { display: block; font-size: 1.4rem; color: var(--primary); }
+  .stat span { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.65); display: flex; align-items: flex-start; justify-content: center; padding: 24px 12px; overflow-y: auto; z-index: 50; }
+  .modal { background: #fff; border-radius: 12px; width: 100%; max-width: 560px; box-shadow: var(--shadow); }
+  .modal.wide { max-width: 820px; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); }
+  .modal-head h3 { margin: 0; }
+  .modal-body { padding: 18px 20px; display: flex; flex-direction: column; gap: 12px; }
+  .close-x { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: var(--muted); }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .opt-row { display: grid; grid-template-columns: 24px 1fr; gap: 8px; align-items: center; }
+  .opt-row input[type="radio"] { width: 18px; height: 18px; }
+  .err-msg { color: var(--danger); font-size: .82rem; min-height: 1em; }
+  .answer-card { border: 1px solid var(--border); border-left-width: 5px; border-radius: 8px; padding: 12px; font-size: .82rem; line-height: 1.45; }
+  .answer-card.ok { border-left-color: var(--ok); } .answer-card.bad { border-left-color: var(--danger); }
+  .answer-card + .answer-card { margin-top: 10px; }
+  details summary { cursor: pointer; font-weight: 600; color: var(--primary); font-size: .88rem; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 768px) {
+    .results-grid, .tri, .stat-grid, .grid2 { grid-template-columns: 1fr; }
+    .bar-row { grid-template-columns: 1fr; gap: 3px; }
+    .screen { padding: 16px; }
+    .stat-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-brand">
+      <h1>CRM SKILLS ASSESSMENT</h1>
+      <p>Simulador y Auditoría de Competencias Profesionales en CRM</p>
+    </div>
+    <div class="hud">
+      <span class="hud-badge" id="hud-user" hidden></span>
+      <span class="hud-badge" id="hud-timer" hidden>⏱ 00:00</span>
+      <span class="hud-badge score" id="hud-score" hidden>0 aciertos</span>
+      <button class="admin-link" id="btn-admin" type="button">🔒 Administrador</button>
+    </div>
+  </header>
+
+  <!-- BIENVENIDA -->
+  <section class="screen active" id="screen-welcome">
+    <div style="text-align:center;max-width:650px;margin:0 auto;padding-top:10px;">
+      <h2>Simulador de Competencias CRM</h2>
+      <p class="muted" style="margin-top:8px;">Resuelve casos empresariales reales y descubre tu nivel profesional en CRM bajo estándares globales (Salesforce, HubSpot, Gartner, HBR).</p>
+    </div>
+    <div class="form-group">
+      <label for="participant-name">Nombre completo del participante:</label>
+      <input type="text" id="participant-name" placeholder="Ej. Carlos Andrés Mendoza" autocomplete="off" maxlength="60">
+      <div class="err-msg" id="name-error"></div>
+      <button class="btn btn-primary" id="btn-start" type="button" style="width:100%;">Comenzar Evaluación CRM →</button>
+    </div>
+    <div class="card-box highlight" style="max-width:640px;margin:0 auto;" id="welcome-info"></div>
+  </section>
+
+  <!-- EVALUACIÓN -->
+  <section class="screen" id="screen-quiz">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <h2 id="module-title">Reto</h2>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <span class="hud-badge light" id="module-category"></span>
+        <span class="badge" id="module-diff"></span>
+      </div>
+    </div>
+    <div class="progress-container"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="card-box context" id="module-context-box" hidden>
+      <div class="box-title">Caso / Contexto empresarial</div>
+      <p id="module-context-text"></p>
+    </div>
+    <p id="module-prompt" style="font-weight:700;font-size:.95rem;"></p>
+    <div id="options-container" class="options-list"></div>
+    <div id="feedback-container" class="feedback-box"></div>
+    <div class="footer-nav">
+      <span id="module-counter" class="small muted"></span>
+      <button class="btn btn-primary" id="btn-submit" type="button">Validar Decisión</button>
+      <button class="btn btn-accent" id="btn-next" type="button" hidden>Siguiente Reto →</button>
+    </div>
+  </section>
+
+  <!-- RESULTADOS -->
+  <section class="screen" id="screen-results">
+    <div style="text-align:center;">
+      <h2>Acta de Dictamen y Perfil Profesional CRM</h2>
+      <p class="muted small">Evaluación completada. Este es tu resultado final.</p>
+    </div>
+    <div class="results-grid">
+      <div class="metric-card">
+        <div class="box-title" style="color:#93c5fd;">Puntaje Global Obtenido</div>
+        <div class="metric-value" id="res-score">0 / 100</div>
+        <div id="res-correct" style="font-size:.85rem;color:#e2e8f0;"></div>
+      </div>
+      <div class="card-box">
+        <div class="box-title">👤 Ficha del Evaluado</div>
+        <p><strong>Participante:</strong> <span id="res-name"></span></p>
+        <p><strong>Intento n.º:</strong> <span id="res-attempts"></span></p>
+        <p><strong>Fecha:</strong> <span id="res-date"></span></p>
+        <p class="small muted" style="margin-top:6px;" id="res-badge-desc"></p>
+      </div>
+    </div>
+    <div class="tri">
+      <div class="card-box"><div class="box-title">⏱ Tiempo total</div><div class="big" id="res-time"></div><div class="small muted" id="res-time-avg"></div></div>
+      <div class="card-box"><div class="box-title">🏅 Nivel</div><div class="big" id="res-level"></div><div class="small muted" id="res-level-range"></div></div>
+      <div class="card-box"><div class="box-title">🎯 Categoría</div><div class="big" id="res-cat"></div><div class="small muted" id="res-cat-sub"></div></div>
+    </div>
+    <div class="card-box">
+      <div class="box-title">📊 Desglose de competencias</div>
+      <div id="res-bars"></div>
+    </div>
+    <div class="card-box highlight">
+      <div class="box-title">💡 Diagnóstico de fortalezas y áreas de mejora</div>
+      <p id="res-diagnostic-text"></p>
+    </div>
+    <details class="card-box" id="res-review-wrap">
+      <summary>Ver el detalle de mis respuestas</summary>
+      <div id="res-review" style="margin-top:12px;"></div>
+    </details>
+    <div class="footer-nav">
+      <span class="small muted">Toma una captura de esta pantalla para tu portafolio.</span>
+      <button class="btn btn-outline" id="btn-reset" type="button">Nueva evaluación</button>
+    </div>
+  </section>
+
+  <!-- ADMIN -->
+  <section class="screen" id="screen-admin">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;">
+      <div><h2>Panel de Administrador</h2><p class="muted small">Gestión de resultados, preguntas y ajustes.</p></div>
+      <button class="btn btn-outline btn-sm" id="btn-admin-logout" type="button">Cerrar sesión</button>
+    </div>
+    <div class="tabs" id="admin-tabs"></div>
+    <div id="admin-content"></div>
+  </section>
+</div>
+<div id="modal-root"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ===================== CONFIGURACIÓN ===================== */
+  var KEY_Q = 'crm_sa_questions_v2', KEY_R = 'crm_sa_results_v2', KEY_S = 'crm_sa_settings_v2', KEY_L = 'crm_sa_lock_v2';
+  // La contraseña NO se guarda en texto plano: solo su hash SHA-256 (con sal).
+  var PASS_SALT = 'crmx-salt-v1::';
+  var PASS_HASH = 'd9e809b5d9cfe478cecbe89d29bac3974bc724527fd2b7dd436c1c99b67c51f8';
+  var MAX_FAILS = 5, LOCK_MS = 5 * 60 * 1000, MAX_RESULTS = 1000;
+
+  var CATS = ['Conocimientos Fundamentales', 'Gestión Operativa', 'Análisis de Indicadores', 'Resolución de Casos', 'Pensamiento Estratégico'];
+  var DIFFS = ['Básico', 'Intermedio', 'Avanzado'];
+  var DIFF_CLASS = { 'Básico': 'b', 'Intermedio': 'i', 'Avanzado': 'a' };
+  var DEFAULT_SETTINGS = { count: 10, weights: { 'Básico': 1, 'Intermedio': 2, 'Avanzado': 3 } };
+
+  /* ===================== UTILIDADES ===================== */
+  function $(id) { return document.getElementById(id); }
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function norm(s) { return String(s || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function fmtClock(sec) {
+    sec = Math.max(0, Math.floor(sec));
+    var h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+    return (h ? h + ':' + pad(m) : pad(m)) + ':' + pad(s);
+  }
+  function fmtDuration(sec) {
+    sec = Math.max(0, Math.round(sec));
+    var m = Math.floor(sec / 60), s = sec % 60;
+    return m + ' min ' + s + ' s';
+  }
+  function fmtDate(iso) {
+    try { return new Date(iso).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' }); }
+    catch (e) { return String(iso); }
+  }
+  function uid(prefix) { return prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+  function shuffle(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  // Constructor DOM seguro (usa textContent, evita inyección HTML)
+  function h(tag, attrs) {
+    var e = document.createElement(tag);
+    attrs = attrs || {};
+    Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v === false || v === null || v === undefined) return;
+      if (k === 'class') e.className = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k.indexOf('on') === 0) e.addEventListener(k.slice(2), v);
+      else if (k === 'value' || k === 'checked' || k === 'disabled') e[k] = v;
+      else e.setAttribute(k, v === true ? '' : v);
+    });
+    for (var i = 2; i < arguments.length; i++) append(e, arguments[i]);
+    return e;
+  }
+  function append(parent, c) {
+    if (c === null || c === undefined || c === false) return;
+    if (Array.isArray(c)) { c.forEach(function (x) { append(parent, x); }); return; }
+    parent.appendChild(c.nodeType ? c : document.createTextNode(String(c)));
+  }
+  function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
+
+  /* ===================== ALMACENAMIENTO (robusto) ===================== */
+  var mem = {};
+  var store = {
+    get: function (k, def) {
+      if (Object.prototype.hasOwnProperty.call(mem, k)) return clone(mem[k]);
+      try {
+        var v = window.localStorage.getItem(k);
+        if (v === null) return def;
+        var parsed = JSON.parse(v);
+        mem[k] = parsed;
+        return clone(parsed);
+      } catch (e) { return def; }
+    },
+    set: function (k, v) {
+      mem[k] = clone(v);
+      try { window.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) { return false; }
+    }
+  };
+
+  /* ===================== SHA-256 (sin dependencias) ===================== */
+  function sha256(str) {
+    var bytes = new TextEncoder().encode(str);
+    var K = [], H = [], c = 0, n, p, d;
+    for (n = 2; c < 64; n++) {
+      p = true;
+      for (d = 2; d * d <= n; d++) { if (n % d === 0) { p = false; break; } }
+      if (p) {
+        if (c < 8) H[c] = Math.floor((Math.sqrt(n) % 1) * 4294967296) >>> 0;
+        K[c] = Math.floor((Math.cbrt(n) % 1) * 4294967296) >>> 0;
+        c++;
+      }
+    }
+    var l = bytes.length, bitLen = l * 8, padLen = ((l + 9 + 63) >> 6) << 6;
+    var buf = new Uint8Array(padLen); buf.set(bytes); buf[l] = 0x80;
+    var dv = new DataView(buf.buffer);
+    dv.setUint32(padLen - 8, Math.floor(bitLen / 4294967296));
+    dv.setUint32(padLen - 4, bitLen >>> 0);
+    function rotr(x, k) { return (x >>> k) | (x << (32 - k)); }
+    var w = new Uint32Array(64), i, off;
+    for (off = 0; off < padLen; off += 64) {
+      for (i = 0; i < 16; i++) w[i] = dv.getUint32(off + i * 4);
+      for (i = 16; i < 64; i++) {
+        var s0 = rotr(w[i - 15], 7) ^ rotr(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+        var s1 = rotr(w[i - 2], 17) ^ rotr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+        w[i] = (w[i - 16] + s0 + w[i - 7] + s1) >>> 0;
+      }
+      var a = H[0], b = H[1], cc = H[2], dd = H[3], e = H[4], f = H[5], g = H[6], hh = H[7];
+      for (i = 0; i < 64; i++) {
+        var S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+        var ch = (e & f) ^ (~e & g);
+        var t1 = (hh + S1 + ch + K[i] + w[i]) >>> 0;
+        var S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+        var mj = (a & b) ^ (a & cc) ^ (b & cc);
+        var t2 = (S0 + mj) >>> 0;
+        hh = g; g = f; f = e; e = (dd + t1) >>> 0; dd = cc; cc = b; b = a; a = (t1 + t2) >>> 0;
+      }
+      H = [(H[0] + a) >>> 0, (H[1] + b) >>> 0, (H[2] + cc) >>> 0, (H[3] + dd) >>> 0, (H[4] + e) >>> 0, (H[5] + f) >>> 0, (H[6] + g) >>> 0, (H[7] + hh) >>> 0];
+    }
+    return H.map(function (x) { return ('00000000' + x.toString(16)).slice(-8); }).join('');
+  }
+
+  /* ===================== BANCO DE PREGUNTAS POR DEFECTO ===================== */
+  var DEFAULTS = [];
+  function Q(cat, diff, context, prompt, options, correct, rationale) {
+    DEFAULTS.push({ id: 'd' + pad(DEFAULTS.length + 1), category: CATS[cat], difficulty: diff, context: context, prompt: prompt, options: options, correct: correct, rationale: rationale, active: true });
+  }
+  // --- Conocimientos Fundamentales ---
+  Q(0, 'Básico', 'Una startup B2B de software en Medellín está armando su primer equipo comercial y necesita alinear conceptos clave.',
+    "¿Cuál es la diferencia fundamental entre un 'Lead' y una 'Oportunidad' en un CRM?",
+    ['Un Lead es cualquier contacto registrado; la Oportunidad es un lead que ya demostró interés real, necesidad, presupuesto y autoridad de compra.', 'Son sinónimos exactos usados indistintamente por Salesforce y HubSpot.', 'La Oportunidad es el contacto inicial frío y el Lead es el cliente que ya firmó contrato.', 'Un Lead solo aplica a canales digitales y la Oportunidad únicamente a llamadas telefónicas.'], 0,
+    'Un Lead es un contacto capturado; la Oportunidad se crea cuando se califica que existe un negocio viable con necesidad activa y presupuesto.');
+  Q(0, 'Básico', 'Una tienda de muebles en Cali registra cada cotización en hojas separadas y el gerente no sabe cuánto dinero hay "en juego" este mes.',
+    '¿Qué representa el pipeline (embudo) de ventas dentro de un CRM?',
+    ['La visualización de las oportunidades organizadas por etapa, con su valor y probabilidad de cierre.', 'Una lista de los empleados y sus horarios de trabajo.', 'El historial contable de las facturas ya pagadas.', 'Un archivo de respaldo de la base de datos.'], 0,
+    'El pipeline muestra las oportunidades abiertas por etapa, permitiendo estimar ingresos futuros y detectar cuellos de botella.');
+  Q(0, 'Intermedio', 'Marketing de una universidad privada entrega 300 contactos de un webinar a Ventas, pero los asesores se quejan: la mayoría solo descargó el material.',
+    '¿Cuál es la diferencia entre un MQL y un SQL?',
+    ['MQL cumple criterios de interés definidos por Marketing; SQL es el que Ventas validó y confirma que merece gestión comercial directa.', 'MQL es un cliente que ya pagó y SQL es uno que canceló.', 'Son lo mismo; solo cambia el nombre según el país.', 'MQL aplica solo a llamadas y SQL solo a correo electrónico.'], 0,
+    'MQL (Marketing Qualified Lead) y SQL (Sales Qualified Lead) marcan el traspaso entre áreas: el SQL es aceptado por Ventas tras validar interés y encaje.');
+  Q(0, 'Intermedio', 'Una aseguradora tiene cotizaciones en un sistema, siniestros en otro y cobranza en una hoja de cálculo. Un cliente llama y el asesor no sabe que tiene una deuda vencida.',
+    '¿Qué principio del CRM resuelve este problema?',
+    ['La vista única del cliente (360°): integrar en un solo registro sus interacciones, productos y estado de cuenta.', 'Contratar más asesores para atender las llamadas.', 'Pedirle al cliente que lleve sus propios documentos en cada contacto.', 'Que cada área guarde su información de forma independiente por seguridad.'], 0,
+    'El valor central del CRM es consolidar la información del cliente para ofrecer una atención coherente en todos los canales.');
+  Q(0, 'Avanzado', 'Una empresa de suscripciones paga en promedio $400.000 COP por conseguir un cliente (CAC) y cada cliente deja $900.000 COP de margen durante toda su vida (LTV).',
+    'Con la regla de referencia LTV:CAC ≥ 3:1, ¿cómo se interpreta esta relación y qué conviene hacer?',
+    ['La relación es ~2,25:1, inferior a la referencia; conviene reducir el CAC o aumentar el LTV (retención, ventas cruzadas) antes de escalar la inversión.', 'La relación es 3:1 exacta; se puede duplicar el presupuesto sin análisis.', 'La relación es 0,44:1 y significa que el negocio es muy rentable.', 'El LTV y el CAC no se pueden comparar porque miden cosas distintas.'], 0,
+    '900.000 / 400.000 = 2,25. Por debajo de 3:1 la adquisición es poco eficiente: se debe optimizar costo de captación o valor del cliente.');
+  // --- Gestión Operativa ---
+  Q(1, 'Básico', 'La base de una distribuidora de alimentos en Bogotá tiene miles de correos rebotados, teléfonos obsoletos y contactos que ya no trabajan en las empresas cliente.',
+    '¿Cuál es la estrategia más eficiente para sanear y mantener actualizada la base de datos?',
+    ['Llamar uno por uno a los 10.000 registros durante los fines de semana.', 'Implementar campañas automatizadas de re-engagement, validadores de correo en formularios y formularios de actualización de datos para clientes.', 'Crear una base nueva y eliminar la anterior sin respaldo.', 'No hacer nada; los datos obsoletos no afectan el CRM.'], 1,
+    'La higiene de datos combina validación en el punto de captura con automatizaciones periódicas que verifican la vigencia de los contactos.');
+  Q(1, 'Intermedio', "'Distribuciones Andina S.A.' tiene más de 12.000 registros con cuentas duplicadas, correos mal escritos y varios teléfonos para un mismo cliente corporativo.",
+    'Como Administrador del CRM, ¿cuál es el procedimiento inicial más adecuado para depurar y unificar esta información?',
+    ['Eliminar todos los registros creados antes del último año sin importar su historial.', 'Ejecutar reglas de deduplicación (NIT / correo) y fusionar (Merge) los registros preservando el historial de actividad.', 'Pedir a cada asesor que borre manualmente en Excel los clientes que reconozca.', 'Ignorar los duplicados porque el buscador del CRM los filtra solo.'], 1,
+    'Las reglas de deduplicación con coincidencia exacta y difusa, más la fusión de registros, mantienen el historial y mejoran la calidad de datos.');
+  Q(1, 'Intermedio', 'Una campaña generó 500 leads en una semana, pero el reporte muestra que el 60% lleva más de 72 horas sin ningún contacto.',
+    'Según los estándares de velocidad de respuesta en ventas, ¿qué acción inmediata se debe implementar?',
+    ['Esperar a que los clientes vuelvan a escribir.', 'Configurar asignación automática (Round-Robin) y una secuencia de correo/llamada prioritaria en minutos para los leads calientes.', 'Asignar los 500 leads al gerente para que los llame en su tiempo libre.', 'Eliminar la campaña por generar demasiados contactos.'], 1,
+    'La probabilidad de calificar un lead cae drásticamente tras la primera hora; la asignación automática y las cadencias de contacto son la respuesta.');
+  Q(1, 'Avanzado', 'Una constructora quiere migrar 8.000 clientes y proyectos desde varios archivos de Excel a un CRM nuevo el próximo lunes.',
+    '¿Cuál es el plan de migración más seguro?',
+    ['Respaldar los archivos, depurar y estandarizar campos, mapear columnas al modelo del CRM, importar una muestra piloto, validarla y luego migrar el resto.', 'Importar todo tal cual el lunes y corregir errores a medida que aparezcan.', 'Migrar solo los nombres y pedir a los asesores que reescriban lo demás.', 'Borrar los Excel originales apenas se importen para evitar versiones paralelas.'], 0,
+    'Una migración exitosa exige respaldo, limpieza, mapeo de campos y una prueba piloto antes de la carga masiva.');
+  Q(1, 'Intermedio', 'Un asesor senior renuncia y deja 120 cuentas activas y 35 oportunidades abiertas en el CRM.',
+    '¿Qué debe hacerse con esos registros?',
+    ['Reasignar cuentas y oportunidades a otros asesores (transferencia de propiedad), conservando el historial, y coordinar la comunicación al cliente.', 'Eliminar su usuario y todos los registros que le pertenecían.', 'Dejar los registros a su nombre hasta que los clientes escriban.', 'Exportar los contactos a su correo personal para que los entregue.'], 0,
+    'La transferencia de propiedad con historial garantiza continuidad comercial y evita pérdida de información y de clientes.');
+  // --- Análisis de Indicadores ---
+  Q(2, 'Intermedio', 'El dashboard muestra 1.000 prospectos mensuales al embudo, pero la conversión final a clientes cerrados es inferior al 1%.',
+    'Para diagnosticar la causa raíz en el embudo, ¿qué análisis se debe revisar primero?',
+    ['Las tasas de conversión etapa por etapa (drop-off) para ubicar en qué fase se caen los prospectos.', 'Aumentar el presupuesto publicitario para duplicar los leads de entrada.', 'Cambiar el color de la interfaz del CRM para motivar a los asesores.', 'Sancionar al equipo de soporte técnico por la baja venta.'], 0,
+    'El análisis de cuellos de botella por etapa aísla si el problema está en la calificación de marketing o en el cierre comercial.');
+  Q(2, 'Intermedio', 'El equipo comercial lleva tres meses sin cumplir la cuota, aunque el número de llamadas registradas en el CRM es alto.',
+    'Si la actividad es alta pero los resultados son bajos, ¿qué indicador cualitativo se debe auditar?',
+    ['La cantidad de café consumida en la oficina.', 'La efectividad de las actividades: ratio de llamada a reunión agendada y calidad de las oportunidades del pipeline.', 'La velocidad de internet de la oficina.', 'El número de correos spam enviados.'], 1,
+    'La actividad pura puede ser una métrica de vanidad; hay que medir conversión por etapa y calidad de las oportunidades.');
+  Q(2, 'Básico', 'En el último trimestre un equipo gestionó 80 oportunidades y cerró 12 como ganadas.',
+    '¿Cuál es la tasa de éxito (win rate) del equipo?',
+    ['15%', '12%', '6,7%', '150%'], 0,
+    'Win rate = ganadas / total de oportunidades = 12 / 80 = 15%.');
+  Q(2, 'Avanzado', 'Un gerente revisa tres negocios abiertos: A por $100 millones con 50% de probabilidad, B por $60 millones con 20% y C por $40 millones con 80%.',
+    '¿Cuál es el pronóstico ponderado (weighted forecast) de este pipeline?',
+    ['$94 millones', '$200 millones', '$47 millones', '$140 millones'], 0,
+    '100×0,5 + 60×0,2 + 40×0,8 = 50 + 12 + 32 = $94 millones.');
+  Q(2, 'Intermedio', 'Un proveedor de internet empezó el mes con 400 clientes y 28 de ellos cancelaron el servicio (sin contar nuevos clientes).',
+    '¿Cuál es la tasa de cancelación (churn) mensual?',
+    ['7%', '14,3%', '28%', '0,7%'], 0,
+    'Churn = clientes perdidos / clientes iniciales = 28 / 400 = 7%.');
+  // --- Resolución de Casos ---
+  Q(3, 'Intermedio', 'Un cliente corporativo clave presenta reclamaciones por entregas tardías, pero sus interacciones previas no están en el CRM porque soporte usaba notas en papel.',
+    '¿Cómo debe gestionarse el caso para garantizar trazabilidad y evitar perder al cliente?',
+    ['Cerrar los tickets antiguos como resueltos y pedirle que empiece de nuevo.', 'Crear un caso centralizado (ticket), unificar el historial de comunicaciones pasadas y presentes y asignar un SLA prioritario de seguimiento.', 'Borrar el perfil del cliente para que no afecte los indicadores de satisfacción.', 'Llamar al cliente para discutir y pedirle que retire sus quejas.'], 1,
+    'La gestión omnicanal exige un registro único de incidencias asociado a la cuenta, con acuerdos de nivel de servicio (SLA).');
+  Q(3, 'Intermedio', 'Una empresa de servicios detecta un aumento del 15% en la cancelación (churn) de clientes recurrentes durante el último trimestre.',
+    'Para mitigar el abandono con datos del CRM, ¿qué acción estratégica se ejecuta primero?',
+    ['Ofrecer un 90% de descuento a todos los clientes.', 'Segmentar clientes por uso, frecuencia de interacción y alertas tempranas de inactividad para diseñar campañas de retención proactivas.', 'Esperar a que llamen a cancelar y rogarles que se queden.', 'Culpar al área de sistemas por fallas de la plataforma.'], 1,
+    'Identificar patrones de inactividad permite actuar antes de que el cliente pida la baja.');
+  Q(3, 'Intermedio', 'Los grandes clientes corporativos son atendidos por asesores junior recién contratados, mientras prospectos pequeños ocupan a los ejecutivos senior.',
+    '¿Qué criterio de segmentación y enrutamiento debe configurarse para corregir la ineficiencia?',
+    ['Asignar clientes al azar con una rifa mensual.', 'Reglas de enrutamiento basadas en valor potencial (lead scoring), tamaño de cuenta y región geográfica.', 'Dejar que cada asesor elija sin supervisión.', 'Eliminar la segmentación y tratar a todos igual.'], 1,
+    'El enrutamiento inteligente alinea la experiencia del asesor con el valor potencial de la cuenta.');
+  Q(3, 'Avanzado', 'Una clienta escribe al correo de servicio exigiendo que eliminen todos sus datos personales de la base de la empresa y que no la contacten más.',
+    '¿Cómo gestionar la solicitud en el CRM considerando la normativa de protección de datos (p. ej., Ley 1581 de 2012 en Colombia)?',
+    ['Registrar la solicitud como caso, verificar la identidad de la titular, suprimir o anonimizar sus datos y excluirla de campañas dentro de los plazos legales, conservando solo lo que la ley obligue.', 'Ignorarla porque los datos son propiedad de la empresa.', 'Eliminar solo su correo y seguir llamándola por teléfono.', 'Responder verbalmente sin dejar registro para no generar evidencia.'], 0,
+    'Los derechos del titular (supresión, revocatoria) deben tramitarse con trazabilidad, verificación de identidad y dentro de los plazos legales.');
+  Q(3, 'Intermedio', 'Dos asesores de la misma empresa contactaron al mismo cliente corporativo con ofertas distintas y el cliente se molestó.',
+    '¿Qué debe configurarse en el CRM para evitar este conflicto?',
+    ['Un único propietario por cuenta, reglas de asignación y de conflicto, y visibilidad de la actividad de la cuenta para todo el equipo.', 'Prohibir a los asesores llamar a clientes.', 'Que cada asesor lleve su propia lista privada de clientes.', 'Pedirle al cliente que decida con quién habla cada vez.'], 0,
+    'La propiedad única de cuenta y la visibilidad de actividad evitan duplicidad de esfuerzos y mensajes contradictorios.');
+  // --- Pensamiento Estratégico ---
+  Q(4, 'Intermedio', 'El Director Comercial necesita supervisar al equipo, identificar oportunidades estancadas y automatizar tareas repetitivas de notificación.',
+    'Desde una perspectiva estratégica, ¿cómo debe usarse el CRM para resolverlo?',
+    ['Tableros Kanban del pipeline con alertas automáticas por inactividad (p. ej., sin cambios en 14 días) y reportes ejecutivos programados.', 'Obligar a los asesores a enviar un Word mensual con sus notas.', 'Eliminar los reportes automáticos y revisar cada base en Excel.', 'Confiar en que el equipo trabaja solo, sin revisar métricas.'], 0,
+    'Los dashboards y flujos de trabajo permiten supervisión por excepción sin microgestión ineficiente.');
+  Q(4, 'Avanzado', 'Seis meses después de implementar el CRM, solo el 35% de los asesores actualiza sus oportunidades; dicen que "es trabajo extra y sirve para vigilarlos".',
+    '¿Qué estrategia aborda mejor la causa de la baja adopción?',
+    ['Simplificar campos obligatorios, mostrar el beneficio personal (recordatorios, menos tareas manuales), capacitar y que la gerencia use el CRM como única fuente en las reuniones de pipeline.', 'Sancionar económicamente a quien no actualice, sin cambiar nada más.', 'Volver a Excel porque el CRM no funcionó.', 'Agregar 20 campos obligatorios para obtener más datos.'], 0,
+    'La adopción mejora cuando el CRM aporta valor al usuario, es simple y el liderazgo lo exige como fuente única de verdad.');
+  Q(4, 'Avanzado', 'Marketing celebra 2.000 leads por campaña, pero Ventas dice que son de mala calidad y los ignora; ambas áreas se culpan mutuamente.',
+    '¿Qué solución propone el enfoque de alineación Marketing–Ventas?',
+    ['Definir juntos los criterios de MQL/SQL con lead scoring, acordar un SLA de seguimiento y crear un ciclo de retroalimentación con motivos de descarte en el CRM.', 'Reducir el presupuesto de marketing a la mitad.', 'Que Ventas genere sus propios leads sin usar el CRM.', 'Medir a Marketing solo por la cantidad de leads.'], 0,
+    'Definiciones compartidas, SLA y retroalimentación cerrada convierten la disputa en un proceso medible de mejora.');
+  Q(4, 'Intermedio', 'Un proveedor de software B2B nota que 80 clientes usan intensamente el plan básico y solo 5 han adquirido módulos adicionales.',
+    '¿Cómo usar el CRM para generar ingresos adicionales con esos clientes?',
+    ['Segmentar por nivel de uso y potencial, crear una campaña dirigida de venta cruzada/ampliación y asignar un ejecutivo de cuenta para el seguimiento.', 'Enviar el mismo correo masivo a toda la base sin segmentar.', 'Subir el precio del plan básico sin avisar.', 'Esperar a que los clientes pidan los módulos.'], 0,
+    'La segmentación por uso permite campañas de upsell/cross-sell relevantes y medibles.');
+  Q(4, 'Avanzado', 'Un analista programa un correo masivo automático a toda la base, incluidos 3.000 contactos con rebotes y clientes que pidieron no recibir publicidad. El dominio de la empresa termina marcado como spam.',
+    '¿Qué principio de gobierno de la automatización se omitió?',
+    ['Segmentar y validar la audiencia (excluir rebotes y bajas), respetar consentimientos, probar con una muestra y monitorear métricas de entrega antes de escalar.', 'Enviar más correos para recuperar la reputación.', 'Desactivar el CRM definitivamente.', 'Comprar una lista externa para reemplazar la base.'], 0,
+    'Toda automatización masiva requiere calidad de audiencia, consentimiento, pruebas controladas y monitoreo de reputación.');
+
+  /* ===================== ACCESO A DATOS ===================== */
+  function validateQuestion(q) {
+    if (!q || typeof q !== 'object') return 'Formato inválido.';
+    if (CATS.indexOf(q.category) < 0) return 'Categoría inválida.';
+    if (DIFFS.indexOf(q.difficulty) < 0) return 'Dificultad inválida.';
+    if (typeof q.prompt !== 'string' || !q.prompt.trim()) return 'Falta el enunciado de la pregunta.';
+    if (!Array.isArray(q.options) || q.options.length !== 4) return 'Debe tener exactamente 4 opciones.';
+    for (var i = 0; i < 4; i++) { if (typeof q.options[i] !== 'string' || !q.options[i].trim()) return 'La opción ' + 'ABCD'.charAt(i) + ' está vacía.'; }
+    var uniq = {}; for (i = 0; i < 4; i++) { var k = norm(q.options[i]); if (uniq[k]) return 'Hay opciones repetidas.'; uniq[k] = 1; }
+    if (!Number.isInteger(q.correct) || q.correct < 0 || q.correct > 3) return 'Respuesta correcta inválida.';
+    return null;
+  }
+  function cleanQuestion(q) {
+    return {
+      id: typeof q.id === 'string' && q.id ? q.id : uid('q'),
+      category: q.category, difficulty: q.difficulty,
+      context: String(q.context || '').trim(), prompt: String(q.prompt).trim(),
+      options: q.options.map(function (o) { return String(o).trim(); }),
+      correct: q.correct, rationale: String(q.rationale || '').trim(), active: q.active !== false
+    };
+  }
+  function getQuestions() {
+    var saved = store.get(KEY_Q, null);
+    if (Array.isArray(saved)) {
+      var ok = saved.filter(function (q) { return !validateQuestion(q); }).map(cleanQuestion);
+      if (ok.length) return ok;
+    }
+    return clone(DEFAULTS);
+  }
+  function saveQuestions(list) { return store.set(KEY_Q, list); }
+  function getSettings() {
+    var s = store.get(KEY_S, null), out = clone(DEFAULT_SETTINGS);
+    if (s && typeof s === 'object') {
+      var c = parseInt(s.count, 10); if (c >= 1 && c <= 50) out.count = c;
+      if (s.weights) DIFFS.forEach(function (d) { var w = parseFloat(s.weights[d]); if (w > 0 && w <= 100) out.weights[d] = w; });
+    }
+    return out;
+  }
+  function getResults() { var r = store.get(KEY_R, []); return Array.isArray(r) ? r.filter(function (x) { return x && typeof x === 'object' && Array.isArray(x.answers); }) : []; }
+  function saveResults(list) { return store.set(KEY_R, list); }
+
+  /* ===================== NIVELES ===================== */
+  function levelFor(pct) {
+    if (pct >= 85) return { title: 'SUPERVISOR DE CRM', range: '85 – 100 puntos', badge: '🏆 Nivel máximo: dominio estratégico, operativo y analítico avanzado.', diag: 'Tienes una visión integral sobresaliente. Demuestras capacidad para liderar auditorías, configurar automatizaciones complejas, optimizar embudos de conversión y supervisar equipos comerciales bajo estándares corporativos globales.' };
+    if (pct >= 70) return { title: 'PROFESIONAL DE CRM', range: '70 – 84 puntos', badge: '⭐ Nivel competente: sólido dominio técnico y resolución de casos.', diag: 'Comprendes la gestión operativa, la limpieza de bases de datos y la interpretación de indicadores clave. Puedes gestionar implementaciones y resolver incidencias de clientes con autonomía.' };
+    if (pct >= 50) return { title: 'AUXILIAR DE CRM', range: '50 – 69 puntos', badge: '📘 Nivel en consolidación: fundamentos correctos, requiere fortalecer casos operativos.', diag: 'Conoces los conceptos básicos y el ciclo de vida del cliente, pero conviene profundizar en deduplicación, análisis de embudos, indicadores y metodologías de retención.' };
+    return { title: 'NIVEL INSUFICIENTE', range: '0 – 49 puntos', badge: '⚠️ Requiere capacitación teórica y práctica.', diag: 'Los resultados muestran vacíos importantes en los fundamentos del CRM y en la gestión de procesos comerciales. Se recomienda repasar conceptos de embudo, calidad de datos y métricas de conversión.' };
+  }
+
+  /* ===================== PANTALLAS ===================== */
+  var currentScreen = 'screen-welcome';
+  var adminAuthed = false;
+  function showScreen(id) {
+    currentScreen = id;
+    Array.prototype.forEach.call(document.querySelectorAll('.screen'), function (s) { s.classList.remove('active'); });
+    $(id).classList.add('active');
+    var inQuiz = id === 'screen-quiz';
+    $('btn-admin').hidden = inQuiz || id === 'screen-admin';
+    ['hud-user', 'hud-timer', 'hud-score'].forEach(function (x) { $(x).hidden = !inQuiz; });
+    window.scrollTo(0, 0);
+  }
+  function updateWelcomeInfo() {
+    var bank = getQuestions().filter(function (q) { return q.active !== false; });
+    var n = Math.min(getSettings().count, bank.length);
+    var box = $('welcome-info'); clear(box);
+    box.appendChild(h('div', { class: 'box-title', text: '📋 Estructura de la evaluación' }));
+    box.appendChild(h('p', { class: 'small', text: 'Responderás ' + n + ' retos con casos empresariales reales y situaciones que pueden ocurrir en una operación comercial. Cada persona recibe casos distintos y en distinto orden. Al finalizar verás tu puntaje, tu nivel profesional, tu categoría y el tiempo total empleado.' }));
+  }
+
+  /* ===================== EVALUACIÓN ===================== */
+  var S = null; // sesión activa
+  function startTest() {
+    var name = $('participant-name').value.replace(/\s+/g, ' ').trim();
+    var err = $('name-error'); err.textContent = '';
+    if (name.length < 3) { err.textContent = 'Ingresa tu nombre completo (mínimo 3 caracteres).'; return; }
+    var bank = getQuestions().filter(function (q) { return q.active !== false; });
+    if (!bank.length) { err.textContent = 'No hay preguntas activas. Contacta al administrador.'; return; }
+    var settings = getSettings();
+    var n = Math.max(1, Math.min(settings.count, bank.length));
+    var prev = getResults().filter(function (r) { return norm(r.name) === norm(name); });
+    var seen = {};
+    prev.forEach(function (r) { r.answers.forEach(function (a) { if (a && a.qid) seen[a.qid] = 1; }); });
+
+    // Selección balanceada por categoría, priorizando preguntas no vistas por esta persona
+    var groups = {};
+    CATS.forEach(function (c) { groups[c] = []; });
+    bank.forEach(function (q) { if (groups[q.category]) groups[q.category].push(q); });
+    CATS.forEach(function (c) {
+      groups[c] = shuffle(groups[c]).sort(function (a, b) { return (seen[a.id] ? 1 : 0) - (seen[b.id] ? 1 : 0); });
+    });
+    var order = shuffle(CATS), picked = [], progress = true;
+    while (picked.length < n && progress) {
+      progress = false;
+      for (var i = 0; i < order.length && picked.length < n; i++) {
+        var g = groups[order[i]];
+        if (g.length) { picked.push(g.shift()); progress = true; }
+      }
+    }
+    // Orden progresivo: de menor a mayor dificultad (aleatorio dentro del mismo nivel)
+    var keyed = picked.map(function (q) { return { q: q, r: Math.random() }; });
+    keyed.sort(function (a, b) { return DIFFS.indexOf(a.q.difficulty) - DIFFS.indexOf(b.q.difficulty) || a.r - b.r; });
+
+    S = {
+      name: name, weights: settings.weights, attempt: prev.length + 1,
+      qs: keyed.map(function (k) { return { q: k.q, order: shuffle([0, 1, 2, 3]) }; }),
+      idx: 0, answers: [], selected: null, answered: false, finished: false,
+      startedAt: Date.now(), qStart: Date.now(), timer: null
+    };
+    $('hud-user').textContent = '👤 ' + name;
+    updateHud();
+    S.timer = setInterval(updateHud, 1000);
+    showScreen('screen-quiz');
+    renderQuestion();
+  }
+  function updateHud() {
+    if (!S) return;
+    $('hud-timer').textContent = '⏱ ' + fmtClock((Date.now() - S.startedAt) / 1000);
+    var ok = S.answers.filter(function (a) { return a.correct; }).length;
+    $('hud-score').textContent = ok + ' / ' + S.qs.length + ' aciertos';
+  }
+  function stopTimer() { if (S && S.timer) { clearInterval(S.timer); S.timer = null; } }
+
+  function renderQuestion() {
+    var p = S.qs[S.idx], q = p.q, total = S.qs.length;
+    S.selected = null; S.answered = false; S.qStart = Date.now();
+    $('module-title').textContent = 'Reto ' + (S.idx + 1);
+    $('module-category').textContent = q.category;
+    var db = $('module-diff'); db.textContent = q.difficulty; db.className = 'badge ' + (DIFF_CLASS[q.difficulty] || 'i');
+    $('progress-bar').style.width = (S.idx / total * 100) + '%';
+    $('module-counter').textContent = 'Reto ' + (S.idx + 1) + ' de ' + total;
+    var ctx = $('module-context-box');
+    if (q.context) { ctx.hidden = false; $('module-context-text').textContent = q.context; } else { ctx.hidden = true; }
+    $('module-prompt').textContent = q.prompt;
+    var cont = $('options-container'); clear(cont);
+    p.order.forEach(function (origIdx, pos) {
+      cont.appendChild(h('button', { type: 'button', class: 'option-btn', onclick: function () { selectOption(pos); } },
+        h('span', { class: 'letter', text: String.fromCharCode(65 + pos) + '.' }), h('span', { text: q.options[origIdx] })));
+    });
+    var fb = $('feedback-container'); fb.className = 'feedback-box'; clear(fb);
+    $('btn-submit').hidden = false; $('btn-submit').disabled = true; $('btn-next').hidden = true;
+    $('btn-next').textContent = S.idx === total - 1 ? 'Ver resultados →' : 'Siguiente reto →';
+    updateHud();
+  }
+  function selectOption(pos) {
+    if (!S || S.answered) return;
+    S.selected = pos;
+    Array.prototype.forEach.call($('options-container').children, function (b, i) { b.classList.toggle('selected', i === pos); });
+    $('btn-submit').disabled = false;
+  }
+  function submitAnswer() {
+    if (!S || S.answered || S.selected === null) return;
+    S.answered = true;
+    var p = S.qs[S.idx], q = p.q;
+    var chosenOrig = p.order[S.selected];
+    var isCorrect = chosenOrig === q.correct;
+    var correctPos = p.order.indexOf(q.correct);
+    var secs = Math.round((Date.now() - S.qStart) / 1000);
+    S.answers.push({
+      qid: q.id, category: q.category, difficulty: q.difficulty, context: q.context, prompt: q.prompt,
+      options: p.order.map(function (o) { return q.options[o]; }),
+      chosenPos: S.selected, correctPos: correctPos,
+      chosenText: q.options[chosenOrig], correctText: q.options[q.correct],
+      correct: isCorrect, seconds: secs, weight: S.weights[q.difficulty] || 1, rationale: q.rationale
+    });
+    Array.prototype.forEach.call($('options-container').children, function (b, i) {
+      b.disabled = true; b.classList.remove('selected');
+      if (i === correctPos) b.classList.add('correct');
+      else if (i === S.selected && !isCorrect) b.classList.add('wrong');
+    });
+    var fb = $('feedback-container'); fb.className = 'feedback-box show ' + (isCorrect ? 'ok' : 'err'); clear(fb);
+    fb.appendChild(h('strong', { text: isCorrect ? '¡Respuesta correcta!' : 'Respuesta incorrecta.' }));
+    if (q.rationale) { fb.appendChild(h('br')); fb.appendChild(document.createTextNode(q.rationale)); }
+    $('progress-bar').style.width = ((S.idx + 1) / S.qs.length * 100) + '%';
+    $('btn-submit').hidden = true; $('btn-next').hidden = false;
+    updateHud();
+  }
+  function nextQuestion() {
+    if (!S || !S.answered) return;
+    S.idx++;
+    if (S.idx < S.qs.length) renderQuestion(); else finishTest();
+  }
+
+  function computeCategories(answers) {
+    var cats = {};
+    CATS.forEach(function (c) { cats[c] = { earned: 0, possible: 0, ok: 0, n: 0 }; });
+    answers.forEach(function (a) {
+      var c = cats[a.category]; if (!c) return;
+      c.possible += a.weight; c.n++;
+      if (a.correct) { c.earned += a.weight; c.ok++; }
+    });
+    return cats;
+  }
+  function finishTest() {
+    stopTimer(); S.finished = true;
+    var totalSecs = Math.round((Date.now() - S.startedAt) / 1000);
+    var possible = 0, earned = 0;
+    S.answers.forEach(function (a) { possible += a.weight; if (a.correct) earned += a.weight; });
+    var pct = possible ? Math.round(earned / possible * 100) : 0;
+    var cats = computeCategories(S.answers);
+    var active = CATS.filter(function (c) { return cats[c].possible > 0; });
+    var best = null, worst = null;
+    active.forEach(function (c) {
+      var p = cats[c].earned / cats[c].possible;
+      if (best === null || p > cats[best].earned / cats[best].possible) best = c;
+      if (worst === null || p < cats[worst].earned / cats[worst].possible) worst = c;
+    });
+    var lvl = levelFor(pct);
+    var rec = {
+      id: uid('r'), name: S.name, date: new Date().toISOString(), attempt: S.attempt,
+      pct: pct, correctCount: S.answers.filter(function (a) { return a.correct; }).length, total: S.answers.length,
+      level: lvl.title, category: best || '—', weakest: worst || '—', totalSeconds: totalSecs, answers: S.answers, cats: cats
+    };
+    var list = getResults(); list.push(rec);
+    if (list.length > MAX_RESULTS) list = list.slice(list.length - MAX_RESULTS);
+    var saved = saveResults(list);
+    S.rec = rec;
+    renderResults(rec, lvl, saved);
+    showScreen('screen-results');
+  }
+  function renderResults(rec, lvl, saved) {
+    $('res-score').textContent = rec.pct + ' / 100';
+    $('res-correct').textContent = rec.correctCount + ' de ' + rec.total + ' respuestas correctas';
+    $('res-name').textContent = rec.name;
+    $('res-attempts').textContent = rec.attempt;
+    $('res-date').textContent = fmtDate(rec.date);
+    $('res-badge-desc').textContent = lvl.badge + (saved ? '' : ' (Aviso: no se pudo guardar el resultado en este navegador.)');
+    $('res-time').textContent = fmtDuration(rec.totalSeconds);
+    $('res-time-avg').textContent = 'Promedio: ' + fmtDuration(rec.total ? rec.totalSeconds / rec.total : 0) + ' por reto';
+    $('res-level').textContent = lvl.title;
+    $('res-level-range').textContent = lvl.range;
+    $('res-cat').textContent = rec.category;
+    $('res-cat-sub').textContent = rec.weakest && rec.weakest !== rec.category ? 'Por reforzar: ' + rec.weakest : 'Categoría con mejor desempeño';
+    var bars = $('res-bars'); clear(bars);
+    CATS.forEach(function (c) {
+      var d = rec.cats[c]; if (!d || !d.possible) return;
+      var p = Math.round(d.earned / d.possible * 100);
+      bars.appendChild(h('div', { class: 'bar-row' }, h('span', { text: c }),
+        h('div', { class: 'bar-track' }, h('div', { class: 'bar-fill', style: 'width:' + p + '%' })),
+        h('span', { text: d.ok + '/' + d.n + ' · ' + p + '%' })));
+    });
+    var diag = lvl.diag;
+    if (rec.category !== '—') diag += ' Tu área más sólida fue «' + rec.category + '»' + (rec.weakest !== rec.category ? ' y la que más conviene reforzar es «' + rec.weakest + '».' : '.');
+    $('res-diagnostic-text').textContent = diag;
+    var rv = $('res-review'); clear(rv);
+    rec.answers.forEach(function (a, i) { rv.appendChild(answerCard(a, i)); });
+    $('res-review-wrap').open = false;
+  }
+  function answerCard(a, i) {
+    return h('div', { class: 'answer-card ' + (a.correct ? 'ok' : 'bad') },
+      h('div', null, h('strong', { text: (i + 1) + '. ' + (a.correct ? '✔ Correcta' : '✖ Incorrecta') + ' '}),
+        h('span', { class: 'badge ' + (DIFF_CLASS[a.difficulty] || 'i'), text: a.difficulty }), ' ',
+        h('span', { class: 'muted', text: a.category + ' · ' + a.seconds + ' s' })),
+      a.context ? h('div', { class: 'muted', style: 'margin-top:4px;', text: 'Caso: ' + a.context }) : null,
+      h('div', { style: 'margin-top:4px;font-weight:600;', text: a.prompt }),
+      h('div', { style: 'margin-top:4px;' }, h('b', { text: 'Respondió: ' }), a.chosenText),
+      a.correct ? null : h('div', null, h('b', { text: 'Correcta: ' }), a.correctText),
+      a.rationale ? h('div', { class: 'muted', style: 'margin-top:4px;', text: a.rationale }) : null);
+  }
+  function resetToWelcome() {
+    stopTimer(); S = null;
+    $('participant-name').value = ''; $('name-error').textContent = '';
+    updateWelcomeInfo();
+    showScreen('screen-welcome');
+  }
+
+  /* ===================== MODALES ===================== */
+  function closeModal() { clear($('modal-root')); }
+  function openModal(title, bodyNodes, wide) {
+    closeModal();
+    var overlay = h('div', { class: 'modal-overlay', onmousedown: function (e) { if (e.target === overlay) closeModal(); } },
+      h('div', { class: 'modal' + (wide ? ' wide' : ''), role: 'dialog', 'aria-modal': 'true' },
+        h('div', { class: 'modal-head' }, h('h3', { text: title }), h('button', { class: 'close-x', type: 'button', 'aria-label': 'Cerrar', onclick: closeModal, text: '✕' })),
+        h('div', { class: 'modal-body' }, bodyNodes)));
+    $('modal-root').appendChild(overlay);
+    return overlay;
+  }
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+
+  /* ===================== LOGIN ADMIN ===================== */
+  function openLogin() {
+    var pw = h('input', { type: 'password', id: 'admin-pass', autocomplete: 'off', placeholder: 'Contraseña de administrador' });
+    var msg = h('div', { class: 'err-msg' });
+    var btn = h('button', { class: 'btn btn-primary', type: 'button', text: 'Ingresar' });
+    function tryLogin() {
+      var lock = store.get(KEY_L, { fails: 0, until: 0 });
+      var now = Date.now();
+      if (lock.until && now < lock.until) { msg.textContent = 'Demasiados intentos. Espera ' + Math.ceil((lock.until - now) / 60000) + ' min.'; return; }
+      var ok = sha256(PASS_SALT + pw.value) === PASS_HASH;
+      if (ok) {
+        store.set(KEY_L, { fails: 0, until: 0 });
+        adminAuthed = true; closeModal(); openAdmin();
+      } else {
+        lock.fails = (lock.fails || 0) + 1;
+        if (lock.fails >= MAX_FAILS) { lock = { fails: 0, until: now + LOCK_MS }; msg.textContent = 'Acceso bloqueado por 5 minutos.'; }
+        else { lock.until = 0; msg.textContent = 'Contraseña incorrecta. Intentos restantes: ' + (MAX_FAILS - lock.fails); }
+        store.set(KEY_L, lock); pw.value = '';
+      }
+    }
+    btn.addEventListener('click', tryLogin);
+    pw.addEventListener('keydown', function (e) { if (e.key === 'Enter') tryLogin(); });
+    openModal('🔒 Acceso de administrador', [h('div', { class: 'field' }, h('label', { text: 'Contraseña' }), pw), msg, btn]);
+    pw.focus();
+  }
+
+  /* ===================== PANEL ADMIN ===================== */
+  var adminTab = 'results';
+  function openAdmin() {
+    if (!adminAuthed) return;
+    showScreen('screen-admin');
+    renderAdmin();
+  }
+  function renderAdmin() {
+    if (!adminAuthed) return;
+    var tabs = $('admin-tabs'); clear(tabs);
+    [['results', '🏆 Resultados'], ['questions', '📝 Preguntas'], ['settings', '⚙️ Ajustes']].forEach(function (t) {
+      tabs.appendChild(h('button', { type: 'button', class: 'tab' + (adminTab === t[0] ? ' active' : ''), text: t[1], onclick: function () { adminTab = t[0]; renderAdmin(); } }));
+    });
+    var c = $('admin-content'); clear(c);
+    if (adminTab === 'results') renderResultsTab(c);
+    else if (adminTab === 'questions') renderQuestionsTab(c);
+    else renderSettingsTab(c);
+  }
+
+  function download(name, text, type) {
+    var blob = new Blob([text], { type: type }), url = URL.createObjectURL(blob);
+    var a = h('a', { href: url, download: name }); document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+  function csvCell(v) {
+    var s = String(v === null || v === undefined ? '' : v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  }
+
+  /* ---- Resultados ---- */
+  var resFilter = { text: '', bestOnly: false };
+  function rankedResults() {
+    var list = getResults();
+    if (resFilter.bestOnly) {
+      var best = {};
+      list.forEach(function (r) {
+        var k = norm(r.name), b = best[k];
+        if (!b || r.pct > b.pct || (r.pct === b.pct && r.totalSeconds < b.totalSeconds)) best[k] = r;
+      });
+      list = Object.keys(best).map(function (k) { return best[k]; });
+    }
+    var t = norm(resFilter.text);
+    if (t) list = list.filter(function (r) { return norm(r.name).indexOf(t) >= 0; });
+    list.sort(function (a, b) { return b.pct - a.pct || a.totalSeconds - b.totalSeconds; });
+    return list;
+  }
+  function renderResultsTab(c) {
+    var all = getResults();
+    var uniq = {}; all.forEach(function (r) { uniq[norm(r.name)] = 1; });
+    var avg = all.length ? Math.round(all.reduce(function (s, r) { return s + r.pct; }, 0) / all.length) : 0;
+    var top = all.reduce(function (m, r) { return Math.max(m, r.pct); }, 0);
+    c.appendChild(h('div', { class: 'stat-grid' },
+      h('div', { class: 'stat' }, h('b', { text: Object.keys(uniq).length }), h('span', { text: 'Participantes' })),
+      h('div', { class: 'stat' }, h('b', { text: all.length }), h('span', { text: 'Evaluaciones' })),
+      h('div', { class: 'stat' }, h('b', { text: avg }), h('span', { text: 'Promedio' })),
+      h('div', { class: 'stat' }, h('b', { text: top }), h('span', { text: 'Mejor puntaje' }))));
+    var wrap = h('div', { style: 'margin-top:12px;' });
+    var search = h('input', { type: 'text', placeholder: 'Buscar por nombre…', value: resFilter.text });
+    var best = h('input', { type: 'checkbox', checked: resFilter.bestOnly });
+    var body = h('div');
+    function draw() { clear(body); body.appendChild(resultsTable(rankedResults())); }
+    search.addEventListener('input', function () { resFilter.text = search.value; draw(); });
+    best.addEventListener('change', function () { resFilter.bestOnly = best.checked; draw(); });
+    c.appendChild(h('div', { class: 'toolbar', style: 'margin-top:14px;' }, search,
+      h('label', { style: 'font-weight:500;display:flex;gap:6px;align-items:center;' }, best, 'Solo el mejor intento por persona'),
+      h('span', { style: 'flex:1' }),
+      h('button', { class: 'btn btn-outline btn-sm', type: 'button', text: '⬇ Exportar CSV', onclick: exportResultsCsv }),
+      h('button', { class: 'btn btn-danger btn-sm', type: 'button', text: '🗑 Borrar todos', onclick: function () {
+        if (getResults().length && confirm('¿Borrar TODOS los resultados? Esta acción no se puede deshacer.')) { saveResults([]); renderAdmin(); }
+      } })));
+    wrap.appendChild(body); c.appendChild(wrap); draw();
+    c.appendChild(h('p', { class: 'small muted', style: 'margin-top:10px;', text: 'Nota: los resultados se guardan en este navegador/dispositivo. Para consolidar datos de varios equipos, expórtalos a CSV.' }));
+  }
+  function resultsTable(list) {
+    if (!list.length) return h('div', { class: 'card-box muted', text: 'Aún no hay resultados que mostrar.' });
+    var rows = list.map(function (r, i) {
+      return h('tr', null,
+        h('td', { text: i + 1 }), h('td', null, h('b', { text: r.name })),
+        h('td', null, h('b', { text: r.pct + '/100' })),
+        h('td', { text: r.level }), h('td', { text: r.category }),
+        h('td', { text: fmtDuration(r.totalSeconds) }), h('td', { text: fmtDate(r.date) }),
+        h('td', { style: 'white-space:nowrap;' },
+          h('button', { class: 'btn btn-outline btn-sm', type: 'button', text: 'Ver respuestas', onclick: function () { openAttemptDetail(r); } }), ' ',
+          h('button', { class: 'btn btn-outline btn-sm', type: 'button', text: '🗑', title: 'Eliminar', onclick: function () {
+            if (confirm('¿Eliminar el resultado de ' + r.name + '?')) { saveResults(getResults().filter(function (x) { return x.id !== r.id; })); renderAdmin(); }
+          } })));
+    });
+    return h('div', { class: 'table-wrap' }, h('table', null,
+      h('thead', null, h('tr', null, ['#', 'Nombre', 'Puntaje', 'Nivel', 'Categoría', 'Tiempo', 'Fecha', 'Acciones'].map(function (t) { return h('th', { text: t }); }))),
+      h('tbody', null, rows)));
+  }
+  function openAttemptDetail(r) {
+    var nodes = [
+      h('div', { class: 'grid2' },
+        h('div', { class: 'card-box' }, h('b', { text: r.name }), h('div', { class: 'small muted', text: fmtDate(r.date) + ' · Intento n.º ' + (r.attempt || 1) })),
+        h('div', { class: 'card-box' }, h('b', { text: r.pct + '/100 · ' + r.level }), h('div', { class: 'small muted', text: 'Categoría: ' + r.category + ' · Tiempo: ' + fmtDuration(r.totalSeconds) }))),
+      h('div', null, r.answers.map(function (a, i) { return answerCard(a, i); }))
+    ];
+    openModal('Respuestas de ' + r.name, nodes, true);
+  }
+  function exportResultsCsv() {
+    var list = rankedResults();
+    var lines = [['Posición', 'Nombre', 'Fecha', 'Puntaje', 'Correctas', 'Total', 'Nivel', 'Categoría', 'Tiempo (s)'].map(csvCell).join(',')];
+    list.forEach(function (r, i) {
+      lines.push([i + 1, r.name, r.date, r.pct, r.correctCount, r.total, r.level, r.category, r.totalSeconds].map(csvCell).join(','));
+    });
+    download('resultados_crm.csv', '﻿' + lines.join('\r\n'), 'text/csv;charset=utf-8');
+  }
+
+  /* ---- Preguntas ---- */
+  var qFilter = { cat: '', diff: '', text: '' };
+  function renderQuestionsTab(c) {
+    var list = getQuestions();
+    var selCat = h('select', null, h('option', { value: '', text: 'Todas las categorías' }), CATS.map(function (x) { return h('option', { value: x, text: x }); }));
+    var selDiff = h('select', null, h('option', { value: '', text: 'Todas las dificultades' }), DIFFS.map(function (x) { return h('option', { value: x, text: x }); }));
+    var search = h('input', { type: 'text', placeholder: 'Buscar texto…', value: qFilter.text });
+    selCat.value = qFilter.cat; selDiff.value = qFilter.diff;
+    var body = h('div');
+    function draw() {
+      clear(body);
+      var t = norm(qFilter.text);
+      var f = list.filter(function (q) {
+        return (!qFilter.cat || q.category === qFilter.cat) && (!qFilter.diff || q.difficulty === qFilter.diff) &&
+          (!t || norm(q.prompt + ' ' + q.context).indexOf(t) >= 0);
+      });
+      body.appendChild(h('p', { class: 'small muted', style: 'margin-bottom:6px;', text: f.length + ' de ' + list.length + ' preguntas · ' + list.filter(function (q) { return q.active !== false; }).length + ' activas' }));
+      if (!f.length) { body.appendChild(h('div', { class: 'card-box muted', text: 'No hay preguntas con ese filtro.' })); return; }
+      var rows = f.map(function (q) {
+        var dsel = h('select', { title: 'Cambiar dificultad' }, DIFFS.map(function (d) { return h('option', { value: d, text: d }); }));
+        dsel.value = q.difficulty;
+        dsel.addEventListener('change', function () {
+          var cur = getQuestions();
+          for (var i = 0; i < cur.length; i++) if (cur[i].id === q.id) cur[i].difficulty = dsel.value;
+          saveQuestions(cur); list = cur; draw();
+        });
+        return h('tr', null,
+          h('td', null, h('div', { style: 'font-weight:600;max-width:380px;', text: q.prompt }), h('div', { class: 'small muted', style: 'max-width:380px;', text: q.context ? q.context.slice(0, 110) + (q.context.length > 110 ? '…' : '') : '' })),
+          h('td', { text: q.category }), h('td', null, dsel),
+          h('td', null, h('span', { class: 'badge ' + (q.active !== false ? 'on' : 'off'), text: q.active !== false ? 'Activa' : 'Inactiva' })),
+          h('td', { style: 'white-space:nowrap;' },
+            h('button', { class: 'btn btn-outline btn-sm', type: 'button', text: 'Editar', onclick: function () { openQuestionEditor(q); } }), ' ',
+            h('button', { class: 'btn btn-outline btn-sm', type: 'button', text: q.active !== false ? 'Desactivar' : 'Activar', onclick: function () {
+              var cur = getQuestions(); cur.forEach(function (x) { if (x.id === q.id) x.active = !(x.active !== false); }); saveQuestions(cur); list = cur; draw();
+            } }), ' ',
+            h('button', { class: 'btn btn-outline btn-sm', type: 'button', text: '🗑', title: 'Eliminar', onclick: function () {
+              if (!confirm('¿Eliminar esta pregunta?')) return;
+              var cur = getQuestions().filter(function (x) { return x.id !== q.id; });
+              if (!cur.length) { alert('Debe quedar al menos una pregunta.'); return; }
+              saveQuestions(cur); list = cur; draw();
+            } })));
+      });
+      body.appendChild(h('div', { class: 'table-wrap' }, h('table', null,
+        h('thead', null, h('tr', null, ['Pregunta / caso', 'Categoría', 'Dificultad', 'Estado', 'Acciones'].map(function (t) { return h('th', { text: t }); }))),
+        h('tbody', null, rows))));
+    }
+    selCat.addEventListener('change', function () { qFilter.cat = selCat.value; draw(); });
+    selDiff.addEventListener('change', function () { qFilter.diff = selDiff.value; draw(); });
+    search.addEventListener('input', function () { qFilter.text = search.value; draw(); });
+    c.appendChild(h('div', { class: 'toolbar' },
+      h('button', { class: 'btn btn-primary btn-sm', type: 'button', text: '＋ Nueva pregunta', onclick: function () { openQuestionEditor(null); } }),
+      h('button', { class: 'btn btn-outline btn-sm', type: 'button', text: '⬆ Importar JSON', onclick: openImport }),
+      h('button', { class: 'btn btn-outline btn-sm', type: 'button', text: '⬇ Exportar JSON', onclick: function () { download('preguntas_crm.json', JSON.stringify(getQuestions(), null, 2), 'application/json'); } }),
+      h('button', { class: 'btn btn-outline btn-sm', type: 'button', text: '↺ Restaurar predeterminadas', onclick: function () {
+        if (confirm('Se reemplazarán TODAS las preguntas por las predeterminadas. ¿Continuar?')) { saveQuestions(clone(DEFAULTS)); renderAdmin(); }
+      } })));
+    c.appendChild(h('div', { class: 'toolbar', style: 'margin:10px 0;' }, selCat, selDiff, search));
+    c.appendChild(body); draw();
+  }
+
+  function openQuestionEditor(existing) {
+    var q = existing ? clone(existing) : { id: null, category: CATS[0], difficulty: DIFFS[0], context: '', prompt: '', options: ['', '', '', ''], correct: 0, rationale: '', active: true };
+    var fCat = h('select', null, CATS.map(function (x) { return h('option', { value: x, text: x }); })); fCat.value = q.category;
+    var fDiff = h('select', null, DIFFS.map(function (x) { return h('option', { value: x, text: x }); })); fDiff.value = q.difficulty;
+    var fCtx = h('textarea', { rows: 3, placeholder: 'Caso de la vida real o situación posible…' }); fCtx.value = q.context;
+    var fPrompt = h('textarea', { rows: 2, placeholder: 'Enunciado de la pregunta' }); fPrompt.value = q.prompt;
+    var fRat = h('textarea', { rows: 3, placeholder: 'Explicación que verá el usuario tras responder' }); fRat.value = q.rationale;
+    var fAct = h('input', { type: 'checkbox', checked: q.active !== false });
+    var radios = [], inputs = [], optRows = [];
+    for (var i = 0; i < 4; i++) {
+      var r = h('input', { type: 'radio', name: 'q-correct', value: String(i), checked: q.correct === i, title: 'Marcar como correcta' });
+      var t = h('input', { type: 'text', placeholder: 'Opción ' + 'ABCD'.charAt(i) }); t.value = q.options[i] || '';
+      radios.push(r); inputs.push(t); optRows.push(h('div', { class: 'opt-row' }, r, t));
+    }
+    var msg = h('div', { class: 'err-msg' });
+    var save = h('button', { class: 'btn btn-primary', type: 'button', text: 'Guardar pregunta' });
+    save.addEventListener('click', function () {
+      var correct = 0; radios.forEach(function (r, i) { if (r.checked) correct = i; });
+      var nq = { id: q.id, category: fCat.value, difficulty: fDiff.value, context: fCtx.value, prompt: fPrompt.value,
+        options: inputs.map(function (x) { return x.value; }), correct: correct, rationale: fRat.value, active: fAct.checked };
+      var err = validateQuestion(nq);
+      if (err) { msg.textContent = err; return; }
+      nq = cleanQuestion(nq);
+      var cur = getQuestions(), found = false;
+      for (var k = 0; k < cur.length; k++) if (cur[k].id === nq.id) { cur[k] = nq; found = true; }
+      if (!found) cur.push(nq);
+      if (!saveQuestions(cur)) { msg.textContent = 'No se pudo guardar (almacenamiento lleno o bloqueado).'; return; }
+      closeModal(); renderAdmin();
+    });
+    openModal(existing ? 'Editar pregunta' : 'Nueva pregunta', [
+      h('div', { class: 'grid2' }, h('div', { class: 'field' }, h('label', { text: 'Categoría' }), fCat), h('div', { class: 'field' }, h('label', { text: 'Dificultad' }), fDiff)),
+      h('div', { class: 'field' }, h('label', { text: 'Caso / contexto (opcional)' }), fCtx),
+      h('div', { class: 'field' }, h('label', { text: 'Pregunta' }), fPrompt),
+      h('div', { class: 'field' }, h('label', { text: 'Opciones (marca la correcta con el círculo)' }), optRows),
+      h('div', { class: 'field' }, h('label', { text: 'Explicación / información adicional' }), fRat),
+      h('label', { style: 'display:flex;gap:8px;align-items:center;font-weight:500;' }, fAct, 'Pregunta activa (se incluye en las evaluaciones)'),
+      msg, save
+    ], true);
+  }
+
+  function openImport() {
+    var ta = h('textarea', { rows: 12, placeholder: '[{"category":"Gestión Operativa","difficulty":"Intermedio","context":"…","prompt":"…","options":["A","B","C","D"],"correct":0,"rationale":"…"}]' });
+    var msg = h('div', { class: 'err-msg' });
+    var go = h('button', { class: 'btn btn-primary', type: 'button', text: 'Importar (se agregan a las existentes)' });
+    go.addEventListener('click', function () {
+      var data;
+      try { data = JSON.parse(ta.value); } catch (e) { msg.textContent = 'JSON inválido: ' + e.message; return; }
+      if (data && !Array.isArray(data) && Array.isArray(data.questions)) data = data.questions;
+      if (!Array.isArray(data) || !data.length) { msg.textContent = 'Se esperaba una lista (array) de preguntas.'; return; }
+      var cur = getQuestions(), ids = {}; cur.forEach(function (x) { ids[x.id] = 1; });
+      var added = 0, errs = [];
+      data.forEach(function (item, i) {
+        var e = validateQuestion(item);
+        if (e) { errs.push('#' + (i + 1) + ': ' + e); return; }
+        var nq = cleanQuestion(item);
+        if (ids[nq.id]) nq.id = uid('q');
+        ids[nq.id] = 1; cur.push(nq); added++;
+      });
+      if (added) saveQuestions(cur);
+      if (errs.length) { msg.textContent = 'Importadas: ' + added + '. Con error: ' + errs.slice(0, 4).join(' | ') + (errs.length > 4 ? ' …' : ''); if (added) renderAdmin(); }
+      else { closeModal(); renderAdmin(); }
+    });
+    openModal('Importar preguntas (JSON)', [
+      h('p', { class: 'small muted', text: 'Categorías válidas: ' + CATS.join(', ') + '. Dificultades: ' + DIFFS.join(', ') + '. "correct" es la posición (0 a 3) de la opción correcta.' }),
+      ta, msg, go], true);
+  }
+
+  /* ---- Ajustes ---- */
+  function renderSettingsTab(c) {
+    var s = getSettings(), qs = getQuestions();
+    var count = h('input', { type: 'number', min: '1', max: '50', value: String(s.count) });
+    var w = {}; DIFFS.forEach(function (d) { w[d] = h('input', { type: 'number', min: '1', max: '100', step: '0.5', value: String(s.weights[d]) }); });
+    var msg = h('div', { class: 'err-msg' });
+    var save = h('button', { class: 'btn btn-primary', type: 'button', text: 'Guardar ajustes' });
+    save.addEventListener('click', function () {
+      var n = parseInt(count.value, 10);
+      if (!(n >= 1 && n <= 50)) { msg.textContent = 'El número de preguntas debe estar entre 1 y 50.'; return; }
+      var weights = {};
+      for (var i = 0; i < DIFFS.length; i++) {
+        var v = parseFloat(w[DIFFS[i]].value);
+        if (!(v > 0 && v <= 100)) { msg.textContent = 'Los pesos deben ser mayores que 0 y hasta 100.'; return; }
+        weights[DIFFS[i]] = v;
+      }
+      store.set(KEY_S, { count: n, weights: weights });
+      msg.style.color = 'var(--ok)'; msg.textContent = 'Ajustes guardados.';
+    });
+    c.appendChild(h('div', { class: 'card-box' },
+      h('div', { class: 'box-title', text: 'Parámetros de la evaluación' }),
+      h('div', { class: 'field', style: 'max-width:260px;' }, h('label', { text: 'Preguntas por evaluación' }), count),
+      h('div', { class: 'box-title', style: 'margin-top:14px;', text: 'Peso por dificultad (puntos relativos)' }),
+      h('div', { class: 'grid2', style: 'grid-template-columns:repeat(3,1fr);max-width:520px;' },
+        DIFFS.map(function (d) { return h('div', { class: 'field' }, h('label', { text: d }), w[d]); })),
+      h('p', { class: 'small muted', style: 'margin:10px 0;', text: 'El puntaje final (0–100) se calcula como puntos obtenidos / puntos posibles. Las preguntas Avanzadas valen más que las Básicas.' }),
+      msg, save));
+    var stats = h('div', { class: 'card-box', style: 'margin-top:12px;' }, h('div', { class: 'box-title', text: 'Preguntas activas por categoría' }));
+    CATS.forEach(function (cat) {
+      var n = qs.filter(function (q) { return q.category === cat && q.active !== false; }).length;
+      stats.appendChild(h('p', null, h('b', { text: cat + ': ' }), n + (n === 0 ? ' ⚠ sin preguntas activas' : '')));
+    });
+    c.appendChild(stats);
+  }
+
+  /* ===================== INICIALIZACIÓN ===================== */
+  function init() {
+    $('btn-start').addEventListener('click', startTest);
+    $('participant-name').addEventListener('keydown', function (e) { if (e.key === 'Enter') startTest(); });
+    $('btn-submit').addEventListener('click', submitAnswer);
+    $('btn-next').addEventListener('click', nextQuestion);
+    $('btn-reset').addEventListener('click', resetToWelcome);
+    $('btn-admin').addEventListener('click', function () { if (adminAuthed) openAdmin(); else openLogin(); });
+    $('btn-admin-logout').addEventListener('click', function () { adminAuthed = false; closeModal(); resetToWelcome(); });
+    window.addEventListener('beforeunload', function (e) {
+      if (S && !S.finished) { e.preventDefault(); e.returnValue = ''; }
+    });
+    updateWelcomeInfo();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+
+  // Exposición mínima para pruebas
+  window.__crm = { sha256: sha256 };
+})();
+</script>
+</body>
+</html>

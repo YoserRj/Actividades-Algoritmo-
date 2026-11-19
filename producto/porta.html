@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM SKILLS ASSESSMENT – Sistema de Evaluación Inteligente</title>
+<!-- Chart.js para analíticas y gráficos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root {
+    --bg-main: #0f172a;
+    --bg-card: #ffffff;
+    --bg-surface: #f8fafc;
+    --primary: #1e3a8a;
+    --primary-light: #eff6ff;
+    --electric: #2563eb;
+    --electric-hover: #1d4ed8;
+    --accent: #0d9488;
+    --accent-light: #f0fdfa;
+    --danger: #dc2626;
+    --danger-light: #fef2f2;
+    --warn: #d97706;
+    --warn-light: #fffbeb;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --radius: 12px;
+    --shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.1);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+
+  body {
+    background: linear-gradient(135deg, var(--bg-main) 0%, #1e293b 100%);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+
+  #app {
+    width: 100%;
+    max-width: 1100px;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    min-height: 680px;
+  }
+
+  /* Header Dashboard */
+  header {
+    background: var(--primary);
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--electric);
+  }
+
+  .header-brand h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; }
+  .header-brand p { font-size: 0.75rem; color: #93c5fd; margin-top: 2px; }
+
+  .dashboard-hud { display: flex; gap: 12px; align-items: center; }
+
+  .hud-badge {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hud-badge.score { background: var(--electric); }
+
+  /* Screens */
+  .screen {
+    display: none;
+    flex: 1;
+    padding: 24px;
+    flex-direction: column;
+    justify-content: space-between;
+    overflow-y: auto;
+    max-height: calc(85vh - 70px);
+  }
+  .screen.active { display: flex; }
+
+  h2 { font-size: 1.25rem; color: var(--primary); margin-bottom: 8px; }
+  p { font-size: 0.9rem; line-height: 1.5; color: var(--text); }
+
+  .card-box {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .card-box.highlight { background: var(--primary-light); border-color: #bfdbfe; }
+  .card-box.warn { background: var(--warn-light); border-color: #fde68a; }
+
+  .box-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    color: var(--primary);
+  }
+
+  /* Form & Inputs */
+  .form-group { display: flex; flex-direction: column; gap: 8px; max-width: 450px; margin: 20px auto; width: 100%; }
+  label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+  input[type="text"], input[type="password"], select, textarea {
+    padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 0.95rem; outline: none; transition: border-color 0.2s; background: #fff;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--electric); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15); }
+
+  .btn {
+    padding: 10px 20px; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-primary { background: var(--electric); color: #fff; }
+  .btn-primary:hover { background: var(--electric-hover); transform: translateY(-1px); }
+  .btn-accent { background: var(--accent); color: #fff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+  .btn-outline:hover { background: var(--bg-surface); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+  /* Progress Bar */
+  .progress-container { width: 100%; background: var(--border); border-radius: 8px; height: 8px; margin: 12px 0 20px 0; overflow: hidden; }
+  .progress-bar { background: var(--electric); height: 100%; width: 0%; transition: width 0.4s ease; }
+
+  /* Options */
+  .options-list { display: flex; flex-direction: column; gap: 10px; margin: 14px 0; }
+  .option-btn {
+    text-align: left; padding: 12px 16px; border: 1.5px solid var(--border); border-radius: 8px; background: #fff; font-size: 0.88rem; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 12px; color: var(--text);
+  }
+  .option-btn:hover:not(:disabled) { border-color: var(--electric); background: var(--primary-light); }
+  .option-btn.selected { border-color: var(--electric); background: var(--primary-light); font-weight: 600; }
+  .option-btn.correct { border-color: #059669; background: #ecfdf5; color: #065f46; font-weight: 600; }
+  .option-btn.wrong { border-color: var(--danger); background: var(--danger-light); color: #991b1b; }
+
+  .feedback-box { padding: 14px 16px; border-radius: 8px; font-size: 0.85rem; line-height: 1.4; margin-top: 12px; display: none; }
+  .feedback-box.show { display: block; }
+  .feedback-box.ok { background: var(--accent-light); border: 1px solid #5eead4; color: var(--primary); }
+  .feedback-box.err { background: var(--danger-light); border: 1px solid #fca5a5; color: #7f1d1d; }
+
+  .footer-nav { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid var(--border); margin-top: 16px; }
+
+  /* Tablas de Administración */
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+  th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  th { background: var(--bg-surface); color: var(--primary); font-weight: 700; }
+
+  /* Overlay Anti-Fraude */
+  #cheat-overlay {
+    position: absolute; inset: 0; background: rgba(15, 23, 42, 0.98); color: #fff; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; z-index: 999;
+  }
+  #cheat-overlay.active { display: flex; }
+
+  @media (max-width: 768px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    #app { height: 98vh; }
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Header Corporativo -->
+  <header>
+    <div class="header-brand">
+      <h1>CRM SKILLS ASSESSMENT</h1>
+      <p>Plataforma de Evaluación y Competencias Profesionales</p>
+    </div>
+    <div class="dashboard-hud">
+      <button class="btn btn-outline" style="color:#fff; border-color:rgba(255,255,255,0.3); font-size:0.75rem; padding:6px 12px;" onclick="openAdminLoginModal()">🔐 Modo Administrador</button>
+      <span class="hud-badge" id="hud-user" style="display:none;">Participante</span>
+      <span class="hud-badge score" id="hud-score" style="display:none;">0 pts</span>
+    </div>
+  </header>
+
+  <!-- PANTALLA 0: BIENVENIDA -->
+  <section class="screen active" id="screen-welcome">
+    <div style="text-align:center; max-width: 650px; margin: 0 auto; padding-top: 10px;">
+      <h2>CRM SKILLS ASSESSMENT – SIMULADOR DE COMPETENCIAS</h2>
+      <p style="color: var(--muted); margin-top: 8px; margin-bottom: 24px;">
+        Evalúa tus conocimientos, resuelve casos empresariales basados en estándares de la industria y descubre tu nivel profesional en CRM.
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label for="participant-name">Nombre completo del participante:</label>
+      <input type="text" id="participant-name" placeholder="Ej. Carlos Andrés Mendoza" autocomplete="off">
+      <button class="btn btn-primary" onclick="startAssessment()" style="margin-top: 10px; width: 100%;">Comenzar Evaluación →</button>
+    </div>
+
+    <div class="card-box warn" style="max-width: 600px; margin: 10px auto;">
+      <div class="box-title" style="color:var(--warn);">⚠️ Protocolo de Integridad Activo</div>
+      <p style="font-size: 0.83rem;">
+        Al iniciar la prueba, se activará el control de foco. Si cambias de pestaña o minimizas la ventana, la evaluación se <strong>anulará automáticamente</strong>.
+      </p>
+    </div>
+  </section>
+
+  <!-- PANTALLA 1: QUIZ / EVALUACIÓN -->
+  <section class="screen" id="screen-quiz">
+    <div>
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h2 id="module-title">Módulo</h2>
+        <span class="hud-badge" id="module-category" style="background:var(--primary-light); color:var(--primary);">Categoría</span>
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+      </div>
+      <div id="module-context-box" class="card-box" style="margin-bottom: 12px; display:none;">
+        <div class="box-title">Contexto Empresarial</div>
+        <p id="module-context-text" style="font-size: 0.85rem;"></p>
+      </div>
+      <p id="module-prompt" style="font-weight: 600; font-size: 0.92rem; margin-bottom: 12px;"></p>
+    </div>
+
+    <div id="options-container" class="options-list"></div>
+    <div id="feedback-container" class="feedback-box"></div>
+
+    <div class="footer-nav">
+      <span id="module-counter" style="font-size: 0.8rem; color: var(--muted);">Pregunta 1 de 10</span>
+      <button class="btn btn-primary" id="btn-submit" onclick="submitAnswer()">Validar Respuesta</button>
+      <button class="btn btn-accent" id="btn-next" onclick="nextQuestion()" style="display:none;">Siguiente Pregunta →</button>
+    </div>
+  </section>
+
+  <!-- PANTALLA 2: RESULTADOS FINALES -->
+  <section class="screen" id="screen-results">
+    <div style="text-align:center; margin-bottom: 10px;">
+      <h2>Acta de Dictamen y Perfil Profesional CRM</h2>
+      <p style="font-size: 0.85rem; color: var(--muted);">Evaluación completada exitosamente bajo validación del servidor.</p>
+    </div>
+
+    <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap: 20px; margin: 10px 0;">
+      <div style="background: linear-gradient(135deg, var(--primary) 0%, #1e40af 100%); color: #fff; padding: 20px; border-radius: 12px; text-align: center;">
+        <div class="box-title" style="color: #93c5fd;">Puntaje Global Obtenido</div>
+        <div style="font-size: 2.5rem; font-weight: 800; margin: 8px 0; color: #60a5fa;" id="res-score">0 / 100</div>
+        <div style="font-size: 0.85rem; color: #e2e8f0;" id="res-level-title">Nivel</div>
+      </div>
+      <div class="card-box">
+        <div class="box-title">👤 Ficha Técnica</div>
+        <p style="font-size: 0.84rem;"><strong>Participante:</strong> <span id="res-name"></span></p>
+        <p style="font-size: 0.84rem;"><strong>Categoría Asignada:</strong> <span id="res-category" style="color:var(--electric); font-weight:750;"></span></p>
+        <p style="font-size: 0.84rem; margin-top: 6px;" id="res-badge-desc"></p>
+      </div>
+    </div>
+
+    <div class="card-box highlight" style="margin-bottom: 16px;">
+      <div class="box-title">💡 Diagnóstico y Recomendaciones</div>
+      <p id="res-diagnostic-text" style="font-size: 0.85rem;"></p>
+    </div>
+
+    <div class="footer-nav">
+      <span style="font-size: 0.78rem; color: var(--muted);">Tu resultado ha quedado registrado en el sistema oficial.</span>
+      <button class="btn btn-outline" onclick="resetAssessment()">Finalizar y Salir</button>
+    </div>
+  </section>
+
+  <!-- PANTALLA 3: PANEL DE ADMINISTRADOR -->
+  <section class="screen" id="screen-admin">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 14px;">
+      <h2>Panel de Administración CRM</h2>
+      <button class="btn btn-outline" onclick="logoutAdmin()">Cerrar Sesión Admin</button>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+      <button class="btn btn-primary" onclick="switchAdminTab('questions')">Gestión de Preguntas</button>
+      <button class="btn btn-outline" onclick="switchAdminTab('results')">Resultados y Ranking</button>
+    </div>
+
+    <!-- Tab Preguntas -->
+    <div id="admin-tab-questions">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h3>Banco de Preguntas Actuales</h3>
+        <button class="btn btn-accent" onclick="openQuestionModal()">+ Nueva Pregunta / Caso</button>
+      </div>
+      <div style="max-height: 400px; overflow-y: auto;">
+        <table id="questions-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Título / Caso</th>
+              <th>Categoría</th>
+              <th>Dificultad</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Tab Resultados -->
+    <div id="admin-tab-results" style="display:none;">
+      <h3>Ranking y Resultados de Evaluados</h3>
+      <div style="max-height: 400px; overflow-y: auto; margin-top:10px;">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Participante</th>
+              <th>Puntaje</th>
+              <th>Porcentaje</th>
+              <th>Nivel</th>
+              <th>Categoría</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer-nav">
+      <span style="font-size: 0.78rem; color: var(--muted);">Modo Administrador Seguro Activo.</span>
+      <button class="btn btn-outline" onclick="goToScreen('screen-welcome')">Ir al Inicio</button>
+    </div>
+  </section>
+
+  <!-- MODAL LOGIN ADMIN -->
+  <div id="admin-login-modal" style="position:fixed; inset:0; background:rgba(15,23,42,0.8); display:none; align-items:center; justify-content:center; z-index:1000;">
+    <div style="background:#fff; padding:30px; border-radius:12px; width:100%; max-width:400px;">
+      <h3 style="color:var(--primary); margin-bottom:10px;">Acceso Administrador</h3>
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:15px;">Introduce la contraseña segura del sistema.</p>
+      <input type="password" id="admin-pass-input" placeholder="Contraseña de administrador" style="width:100%; margin-bottom:15px;">
+      <div style="display:flex; justify-content:flex-end; gap:10px;">
+        <button class="btn btn-outline" onclick="closeAdminLoginModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="submitAdminLogin()">Ingresar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CREAR / EDITAR PREGUNTA -->
+  <div id="question-modal" style="position:fixed; inset:0; background:rgba(15,23,42,0.8); display:none; align-items:center; justify-content:center; z-index:1000; overflow-y:auto; padding:20px;">
+    <div style="background:#fff; padding:24px; border-radius:12px; width:100%; max-width:600px; max-height:90vh; overflow-y:auto;">
+      <h3 id="modal-q-title" style="color:var(--primary); margin-bottom:12px;">Nueva Pregunta o Caso</h3>
+      <input type="hidden" id="edit-q-id">
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <label>Título / Caso:</label>
+        <input type="text" id="q-title" placeholder="Ej. Caso 9: Automatización">
+        <label>Categoría:</label>
+        <select id="q-category">
+          <option value="Conocimientos Fundamentales">Conocimientos Fundamentales</option>
+          <option value="Gestión Operativa">Gestión Operativa</option>
+          <option value="Análisis de Indicadores">Análisis de Indicadores</option>
+          <option value="Resolución de Casos">Resolución de Casos</option>
+          <option value="Pensamiento Estratégico">Pensamiento Estratégico</option>
+        </select>
+        <label>Dificultad:</label>
+        <select id="q-difficulty">
+          <option value="Fácil">Fácil</option>
+          <option value="Intermedio">Intermedio</option>
+          <option value="Difícil">Difícil</option>
+          <option value="Avanzado">Avanzado</option>
+        </select>
+        <label>Contexto (Opcional):</label>
+        <textarea id="q-context" rows="2" placeholder="Descripción de la situación empresarial"></textarea>
+        <label>Enunciado / Pregunta:</label>
+        <textarea id="q-prompt" rows="2" placeholder="Pregunta clave"></textarea>
+        <label>Opciones (4 opciones):</label>
+        <input type="text" id="q-opt-0" placeholder="Opción A">
+        <input type="text" id="q-opt-1" placeholder="Opción B">
+        <input type="text" id="q-opt-2" placeholder="Opción C">
+        <input type="text" id="q-opt-3" placeholder="Opción D">
+        <label>Índice de Respuesta Correcta (0 = A, 1 = B, 2 = C, 3 = D):</label>
+        <select id="q-correct">
+          <option value="0">Opción A</option>
+          <option value="1">Opción B</option>
+          <option value="2">Opción C</option>
+          <option value="3">Opción D</option>
+        </select>
+        <label>Explicación / Retroalimentación:</label>
+        <textarea id="q-rationale" rows="2" placeholder="Por qué esta es la respuesta correcta"></textarea>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:15px;">
+        <button class="btn btn-outline" onclick="closeQuestionModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveQuestion()">Guardar Pregunta</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERLAY ANTI-FRAUDE -->
+  <div id="cheat-overlay">
+    <div style="font-size:3rem; margin-bottom:12px;">🚫</div>
+    <h2 style="color:#fca5a5; font-size:1.4rem; margin-bottom:8px;">Evaluación Anulada por Abandono de Ventana</h2>
+    <p style="color:#e2e8f0; max-width:500px; margin-bottom:24px; font-size:0.9rem;">
+      Se detectó que saliste de la aplicación o cambiaste de pestaña. Por protocolo de seguridad, tu intento fue anulado.
+    </p>
+    <button class="btn btn-danger" onclick="resetAssessment()">Reiniciar Prueba</button>
+  </div>
+</div>
+
+<script>
+  let state = {
+    activeEvaluation: false,
+    participantName: "",
+    questions: [],
+    currentIndex: 0,
+    answers: {},
+    startTime: null,
+    timerInterval: null
+  };
+
+  // Control Anti-Fraude
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && state.activeEvaluation) {
+      triggerAntiCheat();
+    }
+  });
+  window.addEventListener("blur", () => {
+    if (state.activeEvaluation) {
+      triggerAntiCheat();
+    }
+  });
+
+  function triggerAntiCheat() {
+    state.activeEvaluation = false;
+    document.getElementById("cheat-overlay").classList.add("active");
+  }
+
+  function goToScreen(screenId) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(screenId).classList.add("active");
+  }
+
+  async function startAssessment() {
+    const nameInput = document.getElementById("participant-name").value.trim();
+    if (nameInput.length < 3) {
+      alert("Por favor, ingresa tu nombre completo para comenzar.");
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/questions/quiz');
+      const data = await res.json();
+      if (!data || data.length === 0) {
+        alert("No hay preguntas disponibles en el sistema.");
+        return;
+      }
+
+      state.participantName = nameInput;
+      state.questions = data;
+      state.currentIndex = 0;
+      state.answers = {};
+      state.activeEvaluation = true;
+      state.startTime = new Date();
+
+      document.getElementById("hud-user").style.display = "flex";
+      document.getElementById("hud-user").textContent = state.participantName;
+      document.getElementById("hud-score").style.display = "flex";
+      document.getElementById("hud-score").textContent = "0 pts";
+
+      goToScreen("screen-quiz");
+      renderQuestion();
+    } catch (err) {
+      console.error(err);
+      alert("Error al conectar con el servidor.");
+    }
+  }
+
+  function renderQuestion() {
+    const q = state.questions[state.currentIndex];
+    const total = state.questions.length;
+
+    document.getElementById("progress-bar").style.width = `${((state.currentIndex) / total) * 100}%`;
+    document.getElementById("module-title").textContent = q.title;
+    document.getElementById("module-category").textContent = q.category;
+    document.getElementById("module-counter").textContent = `Pregunta ${state.currentIndex + 1} de ${total}`;
+
+    const ctxBox = document.getElementById("module-context-box");
+    if (q.context) {
+      ctxBox.style.display = "block";
+      document.getElementById("module-context-text").textContent = q.context;
+    } else {
+      ctxBox.style.display = "none";
+    }
+
+    document.getElementById("module-prompt").textContent = q.prompt;
+
+    const optionsContainer = document.getElementById("options-container");
+    optionsContainer.innerHTML = "";
+
+    q.options.forEach((opt, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "option-btn";
+      if (state.answers[q.id] === idx) btn.classList.add("selected");
+      btn.innerHTML = `<span><strong>${String.fromCharCode(65 + idx)}.</strong></span> <span>${opt}</span>`;
+      btn.onclick = () => selectOption(idx);
+      optionsContainer.appendChild(btn);
+    });
+
+    document.getElementById("feedback-container").className = "feedback-box";
+    document.getElementById("btn-submit").style.display = "inline-flex";
+    document.getElementById("btn-submit").disabled = state.answers[q.id] === undefined;
+    document.getElementById("btn-next").style.display = "none";
+  }
+
+  function selectOption(idx) {
+    const q = state.questions[state.currentIndex];
+    state.answers[q.id] = idx;
+    document.querySelectorAll(".option-btn").forEach((b, i) => {
+      if (i === idx) b.classList.add("selected");
+      else b.classList.remove("selected");
+    });
+    document.getElementById("btn-submit").disabled = false;
+  }
+
+  async function submitAnswer() {
+    const q = state.questions[state.currentIndex];
+    if (state.answers[q.id] === undefined) return;
+
+    document.getElementById("btn-submit").style.display = "none";
+    document.getElementById("btn-next").style.display = "inline-flex";
+
+    if (state.currentIndex === state.questions.length - 1) {
+      document.getElementById("btn-next").textContent = "Ver Resultados Finales →";
+    }
+  }
+
+  function nextQuestion() {
+    if (state.currentIndex < state.questions.length - 1) {
+      state.currentIndex++;
+      renderQuestion();
+    } else {
+      finishAssessment();
+    }
+  }
+
+  async function finishAssessment() {
+    state.activeEvaluation = false;
+    const endTime = new Date();
+    const diffSeconds = Math.floor((endTime - state.startTime) / 1000);
+    const timeSpent = `${Math.floor(diffSeconds / 60)} min ${diffSeconds % 60} seg`;
+
+    try {
+      const res = await fetch('/api/quiz/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          participantName: state.participantName,
+          answers: state.answers,
+          timeSpent
+        })
+      });
+      const data = await res.json();
+
+      goToScreen("screen-results");
+      document.getElementById("res-name").textContent = data.participantName;
+      document.getElementById("res-score").textContent = `${data.score} / ${data.totalQuestions * 10}`;
+      document.getElementById("res-category").textContent = data.categoryAssigned;
+      document.getElementById("res-level-title").textContent = data.levelReached;
+      document.getElementById("res-badge-desc").textContent = `Aciertos: ${data.correctCount} | Errores: ${data.incorrectCount} | Rendimiento: ${data.percentage}%`;
+      document.getElementById("res-diagnostic-text").textContent = `Evaluación completada en ${timeSpent}. Tu clasificación oficial es ${data.categoryAssigned} bajo el ${data.levelReached}.`;
+    } catch (err) {
+      console.error(err);
+      alert("Error al enviar los resultados al servidor.");
+    }
+  }
+
+  function resetAssessment() {
+    state.activeEvaluation = false;
+    document.getElementById("cheat-overlay").classList.remove("active");
+    document.getElementById("hud-user").style.display = "none";
+    document.getElementById("hud-score").style.display = "none";
+    document.getElementById("participant-name").value = "";
+    goToScreen("screen-welcome");
+  }
+
+  // --- MODO ADMINISTRADOR ---
+  function openAdminLoginModal() {
+    document.getElementById("admin-login-modal").style.display = "flex";
+  }
+  function closeAdminLoginModal() {
+    document.getElementById("admin-login-modal").style.display = "none";
+    document.getElementById("admin-pass-input").value = "";
+  }
+
+  async function submitAdminLogin() {
+    const password = document.getElementById("admin-pass-input").value;
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if (data.success) {
+        closeAdminLoginModal();
+        goToScreen("screen-admin");
+        loadAdminQuestions();
+      } else {
+        alert(data.message);
+      }
+    } catch (e) {
+      alert("Error de autenticación.");
+    }
+  }
+
+  function logoutAdmin() {
+    goToScreen("screen-welcome");
+  }
+
+  function switchAdminTab(tab) {
+    if (tab === 'questions') {
+      document.getElementById("admin-tab-questions").style.display = "block";
+      document.getElementById("admin-tab-results").style.display = "none";
+      loadAdminQuestions();
+    } else {
+      document.getElementById("admin-tab-questions").style.display = "none";
+      document.getElementById("admin-tab-results").style.display = "block";
+      loadAdminResults();
+    }
+  }
+
+  async function loadAdminQuestions() {
+    const res = await fetch('/api/admin/questions');
+    const questions = await res.json();
+    const tbody = document.querySelector("#questions-table tbody");
+    tbody.innerHTML = "";
+    questions.forEach(q => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${q.id}</td>
+        <td><strong>${q.title}</strong><br><small>${q.prompt.substring(0, 50)}...</small></td>
+        <td>${q.category}</td>
+        <td>${q.difficulty}</td>
+        <td>
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="editQuestion(${q.id})">Editar</button>
+          <button class="btn btn-danger" style="padding:4px 8px; font-size:0.75rem;" onclick="deleteQuestion(${q.id})">Eliminar</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  async function loadAdminResults() {
+    const res = await fetch('/api/admin/results');
+    const results = await res.json();
+    const tbody = document.querySelector("#results-table tbody");
+    tbody.innerHTML = "";
+    results.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><strong>${r.participant_name}</strong></td>
+        <td>${r.score} pts</td>
+        <td>${r.percentage}%</td>
+        <td>${r.level_reached}</td>
+        <td><span style="color:var(--electric); font-weight:600;">${r.category_assigned}</span></td>
+        <td><small>${r.created_at}</small></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function openQuestionModal() {
+    document.getElementById("edit-q-id").value = "";
+    document.getElementById("q-title").value = "";
+    document.getElementById("q-context").value = "";
+    document.getElementById("q-prompt").value = "";
+    document.getElementById("q-opt-0").value = "";
+    document.getElementById("q-opt-1").value = "";
+    document.getElementById("q-opt-2").value = "";
+    document.getElementById("q-opt-3").value = "";
+    document.getElementById("q-rationale").value = "";
+    document.getElementById("question-modal").style.display = "flex";
+  }
+
+  function closeQuestionModal() {
+    document.getElementById("question-modal").style.display = "none";
+  }
+
+  async function saveQuestion() {
+    const id = document.getElementById("edit-q-id").value;
+    const title = document.getElementById("q-title").value;
+    const category = document.getElementById("q-category").value;
+    const difficulty = document.getElementById("q-difficulty").value;
+    const context = document.getElementById("q-context").value;
+    const prompt = document.getElementById("q-prompt").value;
+    const options = [
+      document.getElementById("q-opt-0").value,
+      document.getElementById("q-opt-1").value,
+      document.getElementById("q-opt-2").value,
+      document.getElementById("q-opt-3").value
+    ];
+    const correct = parseInt(document.getElementById("q-correct").value);
+    const rationale = document.getElementById("q-rationale").value;
+
+    const payload = { title, category, difficulty, context, prompt, options, correct, rationale, weight: 10 };
+
+    const url = id ? `/api/admin/questions/${id}` : '/api/admin/questions';
+    const method = id ? 'PUT' : 'POST';
+
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      closeQuestionModal();
+      loadAdminQuestions();
+    } else {
+      alert("Error al guardar la pregunta.");
+    }
+  }
+
+  async function deleteQuestion(id) {
+    if (confirm("¿Estás seguro de eliminar esta pregunta?")) {
+      const res = await fetch(`/api/admin/questions/${id}`, { method: 'DELETE' });
+      if (res.ok) loadAdminQuestions();
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,491 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#101827">
+    <meta name="description" content="Plataforma inteligente de evaluación">
+    <title>EvaluaPro | Plataforma de Evaluación</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <header class="header">
+        <a href="#" class="logo" onclick="showScreen('home')">
+            <span class="logo-icon">E</span>
+            <span>Evalua<span class="accent">Pro</span></span>
+        </a>
+
+        <nav class="navigation">
+            <button class="nav-link" onclick="showScreen('home')">
+                Inicio
+            </button>
+            <button class="nav-link" onclick="showScreen('user')">
+                Evaluación
+            </button>
+            <button class="admin-link" onclick="showScreen('admin')">
+                <span>♙</span> Administrador
+            </button>
+        </nav>
+    </header>
+
+    <main>
+
+        <!-- PANTALLA PRINCIPAL -->
+        <section id="home" class="screen active">
+
+            <div class="hero">
+                <div class="hero-content">
+
+                    <span class="eyebrow">
+                        PLATAFORMA INTELIGENTE DE EVALUACIÓN
+                    </span>
+
+                    <h1>
+                        Evalúa tus conocimientos.
+                        <span class="accent">Supera tus límites.</span>
+                    </h1>
+
+                    <p>
+                        Pon a prueba tus habilidades mediante evaluaciones
+                        dinámicas, situaciones reales y desafíos que miden
+                        tu capacidad de análisis y resolución de problemas.
+                    </p>
+
+                    <button class="primary-button"
+                            onclick="showScreen('user')">
+                        Comenzar evaluación →
+                    </button>
+
+                </div>
+
+                <div class="hero-visual">
+                    <div class="visual-card">
+                        <div class="visual-icon">✦</div>
+                        <h3>Evaluación inteligente</h3>
+                        <p>Preguntas dinámicas y resultados personalizados.</p>
+
+                        <div class="visual-progress">
+                            <div class="progress-bar">
+                                <span></span>
+                            </div>
+                            <small>Aprendizaje continuo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="features">
+
+                <article class="feature-card">
+                    <div class="feature-icon">◎</div>
+                    <h3>Preguntas dinámicas</h3>
+                    <p>Evaluaciones con diferentes preguntas y dificultades.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">◷</div>
+                    <h3>Seguimiento</h3>
+                    <p>Control del tiempo y rendimiento de cada evaluación.</p>
+                </article>
+
+                <article class="feature-card">
+                    <div class="feature-icon">↗</div>
+                    <h3>Resultados</h3>
+                    <p>Descubre tu nivel y conoce tus oportunidades de mejora.</p>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- MODO USUARIO -->
+        <section id="user" class="screen">
+
+            <div class="section-container">
+
+                <div class="section-heading">
+                    <span class="eyebrow">MODO PARTICIPANTE</span>
+                    <h2>Bienvenido a tu evaluación</h2>
+                    <p>Ingresa tus datos para comenzar.</p>
+                </div>
+
+                <div class="panel">
+
+                    <form id="userForm">
+
+                        <label for="participantName">
+                            Nombre del participante
+                        </label>
+
+                        <input
+                            type="text"
+                            id="participantName"
+                            placeholder="Escribe tu nombre completo"
+                            minlength="2"
+                            maxlength="80"
+                            autocomplete="name"
+                            required
+                        >
+
+                        <button class="primary-button full-button" type="submit">
+                            Iniciar evaluación →
+                        </button>
+
+                    </form>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- EVALUACIÓN -->
+        <section id="evaluation" class="screen">
+
+            <div class="section-container">
+
+                <div class="evaluation-header">
+                    <div>
+                        <span class="eyebrow">EVALUACIÓN EN CURSO</span>
+                        <h2>Demuestra tus conocimientos</h2>
+                    </div>
+
+                    <div class="timer">
+                        <span>◷</span>
+                        <strong id="timer">00:00</strong>
+                    </div>
+                </div>
+
+                <div class="panel">
+
+                    <div class="question-meta">
+                        <span id="questionNumber">Pregunta 1 de 5</span>
+                        <span id="difficulty">Intermedio</span>
+                    </div>
+
+                    <div class="progress-bar question-progress">
+                        <span id="questionProgress"></span>
+                    </div>
+
+                    <div id="questionContent">
+
+                        <h3 id="questionTitle">
+                            Cargando pregunta...
+                        </h3>
+
+                        <p id="questionDescription"></p>
+
+                        <div id="answerOptions" class="answer-options"></div>
+
+                    </div>
+
+                    <div class="evaluation-actions">
+
+                        <button class="secondary-button"
+                                onclick="previousQuestion()"
+                                id="previousButton">
+                            Anterior
+                        </button>
+
+                        <button class="primary-button"
+                                onclick="nextQuestion()"
+                                id="nextButton">
+                            Siguiente →
+                        </button>
+
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <!-- RESULTADOS -->
+        <section id="results" class="screen">
+
+            <div class="section-container">
+
+                <div class="section-heading">
+                    <span class="eyebrow">EVALUACIÓN FINALIZADA</span>
+                    <h2>Resultados de tu evaluación</h2>
+                    <p id="resultGreeting"></p>
+                </div>
+
+                <div class="results-grid">
+
+                    <div class="result-card main-result">
+                        <span>Rendimiento general</span>
+                        <strong id="resultPercentage">0%</strong>
+                        <p id="resultMessage"></p>
+                    </div>
+
+                    <div class="result-card">
+                        <span>Puntuación</span>
+                        <strong id="resultScore">0</strong>
+                    </div>
+
+                    <div class="result-card">
+                        <span>Respuestas correctas</span>
+                        <strong id="correctAnswers">0</strong>
+                    </div>
+
+                    <div class="result-card">
+                        <span>Respuestas incorrectas</span>
+                        <strong id="incorrectAnswers">0</strong>
+                    </div>
+
+                    <div class="result-card">
+                        <span>Tiempo empleado</span>
+                        <strong id="resultTime">00:00</strong>
+                    </div>
+
+                    <div class="result-card">
+                        <span>Nivel alcanzado</span>
+                        <strong id="resultLevel">Inicial</strong>
+                    </div>
+
+                    <div class="result-card">
+                        <span>Categoría</span>
+                        <strong id="resultCategory">En desarrollo</strong>
+                    </div>
+
+                </div>
+
+                <button class="primary-button"
+                        onclick="showScreen('home')">
+                    Volver al inicio
+                </button>
+
+            </div>
+        </section>
+
+        <!-- ACCESO ADMINISTRADOR -->
+        <section id="admin" class="screen">
+
+            <div class="section-container">
+
+                <div class="section-heading">
+                    <span class="eyebrow">ACCESO RESTRINGIDO</span>
+                    <h2>Panel administrativo</h2>
+                    <p>Ingresa tus credenciales de administrador.</p>
+                </div>
+
+                <div class="panel">
+
+                    <form id="adminLoginForm">
+
+                        <label for="adminEmail">
+                            Correo electrónico
+                        </label>
+
+                        <input
+                            type="email"
+                            id="adminEmail"
+                            placeholder="administrador@ejemplo.com"
+                            autocomplete="username"
+                            required
+                        >
+
+                        <label for="adminPassword">
+                            Contraseña
+                        </label>
+
+                        <input
+                            type="password"
+                            id="adminPassword"
+                            placeholder="Ingresa tu contraseña"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button class="primary-button full-button" type="submit">
+                            Iniciar sesión
+                        </button>
+
+                        <p id="adminError" class="error-message"
+                           aria-live="polite"></p>
+
+                    </form>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- PANEL ADMINISTRATIVO -->
+        <section id="adminDashboard" class="screen">
+
+            <div class="section-container">
+
+                <div class="dashboard-header">
+                    <div>
+                        <span class="eyebrow">ADMINISTRACIÓN</span>
+                        <h2>Panel de control</h2>
+                    </div>
+
+                    <button class="secondary-button"
+                            onclick="logoutAdmin()">
+                        Cerrar sesión
+                    </button>
+                </div>
+
+                <div class="dashboard-grid">
+
+                    <article class="dashboard-card">
+                        <span>Preguntas registradas</span>
+                        <strong id="totalQuestions">0</strong>
+                    </article>
+
+                    <article class="dashboard-card">
+                        <span>Evaluaciones realizadas</span>
+                        <strong id="totalEvaluations">0</strong>
+                    </article>
+
+                    <article class="dashboard-card">
+                        <span>Participantes</span>
+                        <strong id="totalUsers">0</strong>
+                    </article>
+
+                    <article class="dashboard-card">
+                        <span>Promedio general</span>
+                        <strong id="averageScore">0%</strong>
+                    </article>
+
+                </div>
+
+                <div class="panel">
+
+                    <h3>Gestión de preguntas</h3>
+
+                    <button class="primary-button"
+                            onclick="showQuestionForm()">
+                        + Crear pregunta
+                    </button>
+
+                    <div id="questionManagement"></div>
+
+                    <div id="questionEditor" hidden>
+
+                        <form id="questionForm">
+
+                            <label for="questionText">Enunciado</label>
+                            <textarea id="questionText" required></textarea>
+
+                            <label for="questionContext">Contexto del caso</label>
+                            <textarea id="questionContext"></textarea>
+
+                            <label for="option1">Opción A</label>
+                            <input id="option1" required>
+
+                            <label for="option2">Opción B</label>
+                            <input id="option2" required>
+
+                            <label for="option3">Opción C</label>
+                            <input id="option3" required>
+
+                            <label for="option4">Opción D</label>
+                            <input id="option4" required>
+
+                            <label for="correctOption">Respuesta correcta</label>
+                            <select id="correctOption" required>
+                                <option value="0">Opción A</option>
+                                <option value="1">Opción B</option>
+                                <option value="2">Opción C</option>
+                                <option value="3">Opción D</option>
+                            </select>
+
+                            <label for="difficultySelect">Dificultad</label>
+                            <select id="difficultySelect">
+                                <option value="facil">Fácil</option>
+                                <option value="intermedio">Intermedio</option>
+                                <option value="dificil">Difícil</option>
+                                <option value="avanzado">Avanzado</option>
+                            </select>
+
+                            <label for="categoryInput">Categoría</label>
+                            <input id="categoryInput" required>
+
+                            <label for="explanationInput">Explicación</label>
+                            <textarea id="explanationInput" required></textarea>
+
+                            <label for="pointsInput">Puntos</label>
+                            <input type="number" id="pointsInput"
+                                   min="1" max="100" value="10" required>
+
+                            <button class="primary-button" type="submit">
+                                Guardar pregunta
+                            </button>
+
+                            <button class="secondary-button" type="button"
+                                    onclick="hideQuestionForm()">
+                                Cancelar
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+                <div class="panel">
+                    <h3>Historial de evaluaciones</h3>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Participante</th>
+                                    <th>Fecha</th>
+                                    <th>Puntuación</th>
+                                    <th>Rendimiento</th>
+                                    <th>Tiempo</th>
+                                    <th>Nivel</th>
+                                </tr>
+                            </thead>
+                            <tbody id="evaluationHistory">
+                                <tr>
+                                    <td colspan="6">
+                                        No hay evaluaciones registradas.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h3>Ranking de participantes</h3>
+
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Posición</th>
+                                    <th>Participante</th>
+                                    <th>Porcentaje</th>
+                                    <th>Puntuación</th>
+                                    <th>Tiempo</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rankingTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="footer">
+        <p>© 2026 EvaluaPro · Plataforma inteligente de evaluación</p>
+    </footer>
+
+    <script src="script.js" defer></script>
+
+</body>
+</html>
